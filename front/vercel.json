@@ -1,6 +1,6 @@
 {
   "installCommand": "npm install",
-  "buildCommand": "npm run build",
+  "buildCommand": "NODE_OPTIONS=--max-old-space-size=6144 npm run build",
   "framework": "nextjs",
   "regions": ["iad1"]
 }
