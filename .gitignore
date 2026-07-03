@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+front/node_modules/
+engine/node_modules/
+
+# Build
+.next/
+front/.next/
+out/
+
+# Env (secrets — set in Vercel dashboard)
+.env
+.env.local
+.env*.local
+front/.env.local
+
+# Data
+front/data/
+data/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Vercel
+.vercel/
+
+# Ref copies (not part of app)
+front/front_ref/
+front/front_refere/
+front/serv_ref/
+front/node_modules/
+engine/node_modules/
+
+# Local dev data
+front/data/

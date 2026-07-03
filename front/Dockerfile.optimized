@@ -1,0 +1,74 @@
+# Optimized Dockerfile with Layer Caching for Frontend
+# Dependencies are cached separately from code changes
+
+FROM node:18-alpine AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+WORKDIR /app
+
+# Copy ONLY package files first (for better caching)
+# This layer will only rebuild if package.json or package-lock.json changes
+COPY package.json package-lock.json* ./
+
+# Install dependencies with clean install
+# This layer is cached unless package files change
+RUN npm ci --only=production=false
+
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy source code (this layer rebuilds on code changes)
+COPY . .
+
+# Set build-time environment variables
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+
+# Build args for Next.js public environment variables
+ARG NEXT_PUBLIC_BACKEND_URL
+ARG NEXT_PUBLIC_API_URL
+
+# Set as ENV so they're available at build time
+ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
+# Build the application
+# This layer only rebuilds if source code changes
+RUN npm run build
+
+# Production image, copy all the files and run next
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Create non-root user for security
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy only necessary files from builder
+# Copy public assets
+COPY --from=builder /app/public ./public
+
+# Copy built application
+# If standalone mode is enabled, copy from standalone directory
+# Otherwise, copy from .next and node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Switch to non-root user
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+# Use standalone server if available, otherwise use next start
+CMD ["node", "server.js"]

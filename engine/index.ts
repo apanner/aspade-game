@@ -1,0 +1,8 @@
+export * from './types'
+export * from './deck'
+export * from './deal'
+export * from './legal-plays'
+export * from './trick-resolver'
+export * from './bidding'
+export * from './scorer'
+export { SpadesEngine, applyEngineAction } from './state-machine'
