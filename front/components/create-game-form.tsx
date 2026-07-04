@@ -78,9 +78,9 @@ const TEAM_NAMES = [
 const DEFAULT_TEAM_NAMES = ["Kings", "Queens"]
 
 function isLiveModeEnabled(): boolean {
-  const flag = process.env.NEXT_PUBLIC_LIVE_MODE_ENABLED
-  if (flag === "true") return true
-  if (flag === "false") return false
+  const flag = (process.env.NEXT_PUBLIC_LIVE_MODE_ENABLED ?? "").trim().replace(/\r/g, "")
+  if (flag === "true" || flag === "1") return true
+  if (flag === "false" || flag === "0") return false
   return process.env.NODE_ENV === "development"
 }
 

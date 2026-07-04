@@ -2,6 +2,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import AWS from 'aws-sdk';
 import { createClient } from '@supabase/supabase-js';
+import { readEnv } from './env';
 
 interface StorageConfig {
   provider: 'local' | 'google_drive' | 'ftp' | 's3' | 'supabase';
@@ -52,27 +53,27 @@ export class StorageGateway {
   private loadConfig(): StorageConfig {
     // Default configuration - using environment variables for production
     const defaultConfig: StorageConfig = {
-      provider: (process.env.STORAGE_PROVIDER as StorageConfig['provider']) || 's3',
+      provider: (readEnv('STORAGE_PROVIDER', 's3') as StorageConfig['provider']) || 's3',
       s3: {
-        access_key: process.env.S3_ACCESS_KEY || 'ce239a424a0e994c2c564eff6a884742',
-        secret_key: process.env.S3_SECRET_KEY || '61df8a58f3fa4e7b6a42492e67c55d7bfcd07401c2870d57e424eed1d389fa67',
-        bucket: process.env.S3_BUCKET || 'score',
-        region: process.env.S3_REGION || 'us-east-2',
-        endpoint: process.env.S3_ENDPOINT || 'https://wiuthfkfxzytjrviyypw.supabase.co/storage/v1/s3'
+        access_key: readEnv('S3_ACCESS_KEY', 'ce239a424a0e994c2c564eff6a884742'),
+        secret_key: readEnv('S3_SECRET_KEY', '61df8a58f3fa4e7b6a42492e67c55d7bfcd07401c2870d57e424eed1d389fa67'),
+        bucket: readEnv('S3_BUCKET', 'score'),
+        region: readEnv('S3_REGION', 'us-east-2'),
+        endpoint: readEnv('S3_ENDPOINT', 'https://wiuthfkfxzytjrviyypw.supabase.co/storage/v1/s3'),
       },
       supabase: {
-        url: process.env.SUPABASE_URL || '',
-        anon_key: process.env.SUPABASE_ANON_KEY || '',
-        bucket_name: process.env.SUPABASE_BUCKET || 'score'
+        url: readEnv('SUPABASE_URL'),
+        anon_key: readEnv('SUPABASE_ANON_KEY'),
+        bucket_name: readEnv('SUPABASE_BUCKET', 'score'),
       },
       ftp: {
-        host: process.env.FTP_HOST || '',
-        username: process.env.FTP_USERNAME || '',
-        password: process.env.FTP_PASSWORD || '',
-        port: parseInt(process.env.FTP_PORT || '21'),
-        secure: process.env.FTP_SECURE === 'true',
-        base_path: process.env.FTP_BASE_PATH || '/spades_data'
-      }
+        host: readEnv('FTP_HOST'),
+        username: readEnv('FTP_USERNAME'),
+        password: readEnv('FTP_PASSWORD'),
+        port: parseInt(readEnv('FTP_PORT', '21'), 10),
+        secure: readEnv('FTP_SECURE') === 'true',
+        base_path: readEnv('FTP_BASE_PATH', '/spades_data'),
+      },
     };
 
     return defaultConfig;
