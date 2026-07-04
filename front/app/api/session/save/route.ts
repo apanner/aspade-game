@@ -1,37 +1,42 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
+import { storage } from '../../../../lib/storage-gateway'
 
 export async function POST(request: NextRequest) {
   try {
-    const sessionData = await request.json();
-    
-    if (!sessionData.gameId || !sessionData.playerId || !sessionData.playerName) {
-      return NextResponse.json({ error: 'Invalid session data' }, { status: 400 });
+    const { gameId, playerId, playerName, timestamp } = await request.json()
+
+    if (!gameId || !playerId || !playerName) {
+      return NextResponse.json({ error: 'Missing required session data' }, { status: 400 })
     }
-    
-    // Use Docker backend (NO RAILWAY)
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
-                      process.env.BACKEND_URL || 
-                      'http://backend:3001'; // Docker network backend
-    
-    console.log('🔍 Saving session to backend:', backendUrl);
-    
-    const response = await fetch(`${backendUrl}/api/session/save`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(sessionData),
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
+
+    const sessionId = `session_${playerId}`
+    const sessionKey = `sessions/${sessionId}.json`
+
+    let existingSession: Record<string, unknown> | null = null
+    try {
+      existingSession = (await storage.loadFile(sessionKey)) as Record<string, unknown> | null
+    } catch {
+      existingSession = null
     }
-    
-    return NextResponse.json(data);
+
+    const sessionData = {
+      sessionId,
+      gameId,
+      playerId,
+      playerName,
+      timestamp: timestamp || Date.now(),
+      createdAt: existingSession?.createdAt ?? Date.now(),
+      updatedAt: Date.now(),
+    }
+
+    const success = await storage.saveFile(sessionKey, sessionData)
+    if (!success) {
+      return NextResponse.json({ error: 'Failed to save session' }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true, session: sessionData })
   } catch (error) {
-    console.error('Session save error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Session save error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-} 
+}

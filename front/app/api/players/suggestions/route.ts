@@ -1,32 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSmartBackendUrl } from '../../../../lib/backend-config'
+import { storage } from '../../../../lib/storage-gateway'
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const query = searchParams.get('q') || ''
-    
-    // Use centralized backend configuration with smart discovery
-    const backendUrl = await getSmartBackendUrl()
-    const backendApiUrl = backendUrl ? `${backendUrl}/api/players/suggestions?q=${encodeURIComponent(query)}` : `http://backend:3001/api/players/suggestions?q=${encodeURIComponent(query)}`
-    const response = await fetch(backendApiUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-    
-    if (!response.ok) {
-      throw new Error(`Backend responded with ${response.status}`)
+    const query = (searchParams.get('q') || '').trim().toLowerCase()
+
+    if (query.length < 3) {
+      return NextResponse.json({ suggestions: [] })
     }
-    
-    const data = await response.json()
-    return NextResponse.json(data)
+
+    const profileFiles = await storage.listFiles('player_profiles/')
+    const suggestions: string[] = []
+
+    for (const file of profileFiles) {
+      if (!file.endsWith('.json')) continue
+      try {
+        const profileData = await storage.loadFile(file)
+        const profile =
+          typeof profileData === 'string' ? JSON.parse(profileData) : profileData
+        if (profile?.name && String(profile.name).toLowerCase().includes(query)) {
+          suggestions.push(profile.name)
+        }
+      } catch {
+        continue
+      }
+    }
+
+    suggestions.sort((a, b) => {
+      const aLower = a.toLowerCase()
+      const bLower = b.toLowerCase()
+      if (aLower === query) return -1
+      if (bLower === query) return 1
+      if (aLower.startsWith(query) && !bLower.startsWith(query)) return -1
+      if (bLower.startsWith(query) && !aLower.startsWith(query)) return 1
+      return a.localeCompare(b)
+    })
+
+    return NextResponse.json({ suggestions: suggestions.slice(0, 5) })
   } catch (error) {
     console.error('Error getting player suggestions:', error)
-    return NextResponse.json(
-      { error: 'Failed to get player suggestions' },
-      { status: 500 }
-    )
+    return NextResponse.json({ suggestions: [] })
   }
-} 
+}
