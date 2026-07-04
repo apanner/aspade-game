@@ -1,8 +1,20 @@
 # Deploy to Vercel
 
+**Live URL:** https://aspade-game.vercel.app  
+**GitHub:** https://github.com/apanner/aspade-game  
+**Vercel project:** `aspade-game` (root directory = `front`)
+
 1. Push this repo to GitHub (`aspade-game`).
 2. Import in [Vercel](https://vercel.com/new) with **Root Directory** = `front`.
-3. Set environment variables (copy from `asapde_vercel_v2`):
+## Env sync (from `front/.env.local`)
+
+```powershell
+cd aspade_game
+pwsh scripts/sync-vercel-env.ps1
+vercel deploy --prod --yes
+```
+
+Required vars (see `front/.env.local` / `.env.example`):
 
 | Variable | Required |
 |----------|----------|
