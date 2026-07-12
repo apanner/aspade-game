@@ -109,7 +109,7 @@ export class GamePoller {
         case 'bidding':
         return 2000;
         case 'playing':
-        return 1000;
+        return 1800;
         case 'trick_review':
         return 8000; // 8 seconds - less urgent but still active
         case 'scoring':

@@ -193,14 +193,13 @@ export function buildCardTableProps(game: Game, myPlayerId: string): CardTablePr
   const lastCompleted =
     completedTricksCount > 0 ? live.completedTricks![completedTricksCount - 1] : null
   const lastCompletedTrick =
-    lastCompleted?.winnerId &&
-    (!live.currentTrick?.plays?.length || live.currentTrick.plays.length === 0)
+    lastCompleted?.winnerId
       ? {
           trickIndex: completedTricksCount - 1,
           winnerId: lastCompleted.winnerId,
           winnerName: game.players[lastCompleted.winnerId]?.name ?? 'Player',
           winnerSeat: lastCompleted.winnerSeat ?? live.seats[lastCompleted.winnerId] ?? 0,
-          plays: lastCompleted.plays.map((p) => ({
+          plays: (lastCompleted.plays ?? []).map((p) => ({
             playerId: p.playerId,
             card: p.card as CardCode,
             seat: p.seat,

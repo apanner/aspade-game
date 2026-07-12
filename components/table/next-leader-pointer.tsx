@@ -38,6 +38,7 @@ export function NextLeaderPointer({ leaderName, leaderSeat, mySeat }: NextLeader
         <p className="text-[10px] font-bold uppercase tracking-wider text-turn-active">
           {leaderName} leads next
         </p>
+        <p className="text-[9px] text-white/50 mt-0.5">New trick starting</p>
       </div>
     </motion.div>
   )

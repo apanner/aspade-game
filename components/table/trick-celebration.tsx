@@ -21,7 +21,6 @@ const POSITION_CLASS: Record<string, string> = {
   west: "left-1 top-1/2 -translate-y-1/2",
 }
 
-/** Fly cards toward the winner's seat on the table. */
 const SEAT_FLY: Record<string, { x: number; y: number }> = {
   south: { x: 0, y: 140 },
   north: { x: 0, y: -140 },
@@ -29,27 +28,34 @@ const SEAT_FLY: Record<string, { x: number; y: number }> = {
   west: { x: -140, y: 0 },
 }
 
+/** Hold all four cards visible so players can read the trick before sweep. */
+const REVEAL_MS = 2600
+const SWEEP_MS = 900
+const TOTAL_MS = REVEAL_MS + SWEEP_MS
+
 type TrickCelebrationProps = {
   data: TrickCelebrationData | null
   mySeat: number
+  myPlayerId?: string
   onDone?: () => void
 }
 
-export function TrickCelebration({ data, mySeat, onDone }: TrickCelebrationProps) {
+export function TrickCelebration({ data, mySeat, myPlayerId, onDone }: TrickCelebrationProps) {
   const prefersReducedMotion = useReducedMotion()
-  const [sweep, setSweep] = useState(false)
+  const [phase, setPhase] = useState<"reveal" | "sweep">("reveal")
 
   useEffect(() => {
     if (!data) {
-      setSweep(false)
+      setPhase("reveal")
       return
     }
     if (prefersReducedMotion) {
-      const t = window.setTimeout(() => onDone?.(), 400)
+      const t = window.setTimeout(() => onDone?.(), 700)
       return () => window.clearTimeout(t)
     }
-    const sweepTimer = window.setTimeout(() => setSweep(true), 600)
-    const doneTimer = window.setTimeout(() => onDone?.(), 1500)
+    setPhase("reveal")
+    const sweepTimer = window.setTimeout(() => setPhase("sweep"), REVEAL_MS)
+    const doneTimer = window.setTimeout(() => onDone?.(), TOTAL_MS)
     return () => {
       window.clearTimeout(sweepTimer)
       window.clearTimeout(doneTimer)
@@ -60,22 +66,30 @@ export function TrickCelebration({ data, mySeat, onDone }: TrickCelebrationProps
 
   const winnerPos = getSeatPosition(data.winnerSeat, mySeat)
   const fly = SEAT_FLY[winnerPos]
+  const isYou = data.winnerId === myPlayerId
+  const winnerLabel = isYou ? "You" : data.winnerName.split(" ")[0]
+  const sweeping = phase === "sweep" && !prefersReducedMotion
 
   return (
     <div className="pointer-events-none absolute inset-0 z-30">
       <motion.div
-        initial={{ opacity: 0, y: 8, scale: 0.95 }}
+        initial={{ opacity: 0, y: 10, scale: 0.94 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0 }}
         className={cn(
-          "absolute inset-x-0 -top-12 mx-auto w-fit rounded-xl px-4 py-2",
-          "border border-turn-active/50 bg-black/90 backdrop-blur-md",
-          "shadow-[0_0_24px_rgba(34,197,94,0.4)]"
+          "absolute inset-x-0 -top-14 mx-auto w-fit rounded-2xl px-5 py-3",
+          "border-2 border-turn-active/60 bg-black/92 backdrop-blur-md",
+          "shadow-[0_0_32px_rgba(34,197,94,0.45)]"
         )}
       >
-        <p className="text-center text-sm font-bold text-white">
-          <span className="text-turn-active">{data.winnerName}</span> collects the trick
+        <p className="text-center text-[10px] font-bold uppercase tracking-[0.2em] text-turn-active/80">
+          Trick {data.trickIndex + 1} complete
         </p>
+        <p className="text-center text-base font-bold text-white mt-0.5">
+          <span className="text-turn-active">{winnerLabel}</span>
+          {isYou ? " win!" : " wins"}
+        </p>
+        <p className="text-center text-[10px] text-white/50 mt-0.5">Books +1</p>
       </motion.div>
 
       {data.plays.map((play) => {
@@ -88,17 +102,32 @@ export function TrickCelebration({ data, mySeat, onDone }: TrickCelebrationProps
             className={cn("absolute", POSITION_CLASS[pos])}
             initial={{ opacity: 1, scale: 1, x: 0, y: 0 }}
             animate={
-              sweep && !prefersReducedMotion
-                ? { x: fly.x, y: fly.y, opacity: 0, scale: 0.45 }
-                : { x: 0, y: 0, opacity: 1, scale: 1 }
+              sweeping
+                ? { x: fly.x, y: fly.y, opacity: 0, scale: 0.4 }
+                : {
+                    x: 0,
+                    y: 0,
+                    opacity: 1,
+                    scale: isWinner ? [1, 1.08, 1.05] : 1,
+                  }
             }
-            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+            transition={{
+              duration: sweeping ? SWEEP_MS / 1000 : 0.5,
+              ease: [0.22, 1, 0.36, 1],
+            }}
           >
-            <PlayingCard
-              code={play.card}
-              state={isWinner ? "winning" : "played"}
-              size="sm"
-            />
+            <div
+              className={cn(
+                "rounded-lg transition-shadow duration-300",
+                isWinner && !sweeping && "shadow-[0_0_28px_rgba(250,204,21,0.65)] ring-2 ring-win-gold/70"
+              )}
+            >
+              <PlayingCard
+                code={play.card}
+                state={isWinner ? "winning" : "played"}
+                size="sm"
+              />
+            </div>
           </motion.div>
         )
       })}

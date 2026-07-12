@@ -37,6 +37,7 @@ export function LiveGame({ gameId }: LiveGameProps) {
   const [currentPlayerId, setCurrentPlayerId] = useState<string | null>(null)
   const [cardTableKey, setCardTableKey] = useState(0)
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("connecting")
+  const [trickPacing, setTrickPacing] = useState(false)
   const pollerRef = useRef<GamePoller | null>(null)
   const lastTrickCountRef = useRef(0)
   const roundAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -75,9 +76,13 @@ export function LiveGame({ gameId }: LiveGameProps) {
       if (!winner) return
 
       if (lastTrick.winnerId === playerId) {
-        toast({ title: "You won the trick! 🎉", description: "Books +1" })
+        window.setTimeout(() => {
+          toast({ title: "You won the trick! 🎉", description: "Books +1" })
+        }, 1200)
       } else {
-        toast({ title: `${winner.name} wins the trick`, description: `${winner.name} takes the books` })
+        window.setTimeout(() => {
+          toast({ title: `${winner.name} wins the trick`, description: `${winner.name} takes the books` })
+        }, 1200)
       }
     },
     [toast]
@@ -220,6 +225,7 @@ export function LiveGame({ gameId }: LiveGameProps) {
 
   useEffect(() => {
     if (!game?.liveState || !hasComputers) return
+    if (trickPacing) return
     const phase = game.liveState.phase
     const turnId = game.liveState.currentTurn
     const isBotTurn = turnId && game.players[turnId]?.isComputer
@@ -228,10 +234,10 @@ export function LiveGame({ gameId }: LiveGameProps) {
 
     const interval = window.setInterval(() => {
       pollerRef.current?.forceRefresh()
-    }, 1200)
+    }, 2000)
 
     return () => window.clearInterval(interval)
-  }, [game?.liveState?.phase, game?.liveState?.currentTurn, game?.players, hasComputers])
+  }, [game?.liveState?.phase, game?.liveState?.currentTurn, game?.players, hasComputers, trickPacing])
 
   useEffect(() => {
     if (!game?.liveState || !currentPlayerId) return
@@ -364,6 +370,7 @@ export function LiveGame({ gameId }: LiveGameProps) {
           }}
           onRoundCompleteDismiss={() => handleGameAction("nextRound")}
           onRequestSync={() => pollerRef.current?.forceRefresh()}
+          onPacingChange={setTrickPacing}
         />
       </CardTableErrorBoundary>
     ) : null

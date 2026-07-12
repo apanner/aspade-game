@@ -100,6 +100,7 @@ export type CardTableProps = {
   onSubmitBid?: (bid: number) => Promise<void>
   onRoundCompleteDismiss?: () => void
   onRequestSync?: () => void
+  onPacingChange?: (isPacing: boolean) => void
   gameId?: string
   isHost?: boolean
 }
@@ -134,6 +135,7 @@ export function CardTable({
   onSubmitBid,
   onRoundCompleteDismiss,
   onRequestSync,
+  onPacingChange,
   gameId,
   isHost = false,
 }: CardTableProps) {
@@ -149,6 +151,7 @@ export function CardTable({
   const [flyRequest, setFlyRequest] = useState<CardFlyRequest | null>(null)
   const [flyHiddenPlayKey, setFlyHiddenPlayKey] = useState<string | null>(null)
   const [freshPlayKeys, setFreshPlayKeys] = useState<string[]>([])
+  const [trickBreather, setTrickBreather] = useState(false)
   const [nextLeaderId, setNextLeaderId] = useState<string | null>(null)
   const [showRoundBanner, setShowRoundBanner] = useState(false)
   const trickZoneRef = useRef<HTMLDivElement>(null)
@@ -187,10 +190,10 @@ export function CardTable({
   }, [trickPlaysKey, trickPlays.length, mySeat])
 
   useEffect(() => {
-    if (trickPlays.length > 0) {
+    if (trickPlays.length > 0 && !trickBreather && !showTrickCelebration) {
       setNextLeaderId(null)
     }
-  }, [trickPlaysKey])
+  }, [trickPlaysKey, trickBreather, showTrickCelebration])
 
   useEffect(() => {
     const prev = prevTrickPlaysRef.current
@@ -206,12 +209,13 @@ export function CardTable({
     if (botKeys.length === 0) return
 
     setFreshPlayKeys(botKeys)
-    const timer = window.setTimeout(() => setFreshPlayKeys([]), 500)
+    const timer = window.setTimeout(() => setFreshPlayKeys([]), 750)
     return () => window.clearTimeout(timer)
   }, [trickPlaysKey, myPlayerId, trickPlays])
 
   const showTrickCelebration = !!trickCelebration
-  const displayTrickPlays = showTrickCelebration
+  const hideLiveTrick = showTrickCelebration || trickBreather
+  const displayTrickPlays = hideLiveTrick
     ? EMPTY_TRICK_PLAYS
     : currentTrickPlays.filter((p) => playKey(p) !== flyHiddenPlayKey)
   const isMyTurn = currentTurnId === myPlayerId
@@ -280,6 +284,8 @@ export function CardTable({
           plays,
         })
         setNextLeaderId(lastCompletedTrick.winnerId)
+        setTrickBreather(false)
+        onPacingChange?.(true)
       }
     }
 
@@ -291,16 +297,18 @@ export function CardTable({
     if (fullTrickSnapshotRef.current.length > 0) {
       fullTrickSnapshotRef.current = []
     }
-  }, [round, completedTricksCount, lastCompletedTrickKey])
+  }, [round, completedTricksCount, lastCompletedTrickKey, onPacingChange])
 
   const handleTrickCelebrationDone = () => {
     setTrickCelebration(null)
     fullTrickSnapshotRef.current = []
     prevTrickPlaysRef.current = []
-    if (currentTurnId) {
-      setNextLeaderId(currentTurnId)
-      window.setTimeout(() => setNextLeaderId(null), prefersReducedMotion ? 800 : 2400)
-    }
+    setTrickBreather(true)
+    window.setTimeout(() => {
+      setTrickBreather(false)
+      onPacingChange?.(false)
+      window.setTimeout(() => setNextLeaderId(null), prefersReducedMotion ? 1000 : 2800)
+    }, prefersReducedMotion ? 400 : 900)
   }
 
   useEffect(() => {
@@ -547,10 +555,11 @@ export function CardTable({
                 <TrickCelebration
                   data={trickCelebration}
                   mySeat={mySeat}
+                  myPlayerId={myPlayerId}
                   onDone={handleTrickCelebrationDone}
                 />
               )}
-              {nextLeaderId && !showTrickCelebration && displayTrickPlays.length === 0 && (() => {
+              {nextLeaderId && !showTrickCelebration && !trickBreather && displayTrickPlays.length === 0 && (() => {
                 const leader = players.find((player) => player.id === nextLeaderId)
                 if (!leader) return null
                 return (

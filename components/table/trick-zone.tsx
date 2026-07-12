@@ -97,7 +97,7 @@ export const TrickZone = forwardRef<HTMLDivElement, TrickZoneProps>(function Tri
                 : false
             }
             animate={{ x: 0, y: 0, rotate: 0, scale: 1, opacity: 1 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.62, ease: [0.22, 1, 0.36, 1] }}
           >
             <PlayingCard code={play.card} state="played" size="sm" />
           </motion.div>

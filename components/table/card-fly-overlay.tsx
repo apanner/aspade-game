@@ -71,7 +71,7 @@ export function CardFlyOverlay({ request, onComplete }: CardFlyOverlayProps) {
         rotate: -5,
         scale: 1,
       }}
-      transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
       onAnimationComplete={handleComplete}
     >
       <PlayingCard code={card} state="playable" size="md" className="h-full w-full shadow-[0_16px_40px_rgba(0,0,0,0.55)]" />
