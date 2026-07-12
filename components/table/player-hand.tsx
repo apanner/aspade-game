@@ -135,7 +135,6 @@ export function PlayerHand({
               ref={(el) => {
                 cardRefs.current[card] = el
               }}
-              layout
               drag={canDrag}
               dragSnapToOrigin
               dragElastic={0.12}

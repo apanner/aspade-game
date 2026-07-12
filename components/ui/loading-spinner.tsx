@@ -1,39 +1,5 @@
 import React from 'react';
-
-// SVG Spade logo matching app title (gold gradient)
-const SpadeLogo = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' | 'xl' }) => {
-  const sizeClasses = {
-    sm: 'w-6 h-6 md:w-8 md:h-8',
-    md: 'w-8 h-8 md:w-12 md:h-12',
-    lg: 'w-12 h-12 md:w-16 md:h-16',
-    xl: 'w-16 h-16 md:w-20 md:h-20'
-  };
-
-  // Use predictable ID for gradient to avoid hydration issues
-  const gradientId = `spade-gold-${size}`;
-
-  return (
-    <svg
-      viewBox="0 0 32 32"
-      className={`${sizeClasses[size]} drop-shadow-[0_0_6px_rgba(255,215,0,0.2)]`}
-      aria-label="Loading"
-      role="img"
-    >
-      <defs>
-        <radialGradient id={gradientId} cx="50%" cy="40%" r="70%">
-          <stop offset="0%" stopColor="#fffbe6" />
-          <stop offset="60%" stopColor="#FFD700" />
-          <stop offset="100%" stopColor="#B8860B" />
-        </radialGradient>
-      </defs>
-      <path
-        d="M16 3C11 9 4 13.5 4 20.5C4 24 7 27 10.5 27C12.5 27 14.5 26.5 16 25C17.5 26.5 19.5 27 21.5 27C25 27 28 24 28 20.5C28 13.5 21 9 16 3Z"
-        fill={`url(#${gradientId})`}
-      />
-      <ellipse cx="16" cy="28.5" rx="2" ry="2.5" fill="#FFD700" opacity="0.7" />
-    </svg>
-  );
-};
+import { AppLogo } from '@/components/brand/app-logo';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -77,7 +43,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     <div className={`relative ${containerSizes[size]} flex items-center justify-center`}>
       {/* Spade logo center */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <SpadeLogo size={size} />
+        <AppLogo size={size === 'sm' ? 'sm' : size === 'lg' ? 'lg' : size === 'xl' ? 'xl' : 'md'} />
       </div>
       
       {/* Orbiting dots container */}

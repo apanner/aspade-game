@@ -1,8 +1,10 @@
 "use client"
 
 import { forwardRef } from "react"
+import { motion, useReducedMotion } from "framer-motion"
 import { PlayingCard } from "./playing-card"
 import { getSeatPosition, parseCardCode, SUIT_SYMBOL } from "./card-utils"
+import { playKey } from "@/lib/trick-display"
 import { cn } from "@/lib/utils"
 
 type TrickPlay = { playerId: string; card: string; seat: number }
@@ -13,6 +15,7 @@ type TrickZoneProps = {
   isDropTarget?: boolean
   celebrating?: boolean
   leaderLabel?: string | null
+  freshPlayKeys?: string[]
 }
 
 const POSITION_CLASS: Record<string, string> = {
@@ -22,10 +25,20 @@ const POSITION_CLASS: Record<string, string> = {
   west: "left-0 top-1/2 -translate-y-1/2 -translate-x-1",
 }
 
+const SEAT_ENTRY: Record<string, { x: number; y: number; rotate: number; scale: number }> = {
+  south: { x: 0, y: 72, rotate: 4, scale: 0.82 },
+  north: { x: 0, y: -72, rotate: -4, scale: 0.82 },
+  east: { x: 72, y: 0, rotate: 8, scale: 0.82 },
+  west: { x: -72, y: 0, rotate: -8, scale: 0.82 },
+}
+
 export const TrickZone = forwardRef<HTMLDivElement, TrickZoneProps>(function TrickZone(
-  { plays, mySeat, isDropTarget = false, celebrating = false, leaderLabel = null },
+  { plays, mySeat, isDropTarget = false, celebrating = false, leaderLabel = null, freshPlayKeys = [] },
   ref
 ) {
+  const prefersReducedMotion = useReducedMotion()
+  const freshSet = new Set(freshPlayKeys)
+
   return (
     <div
       ref={ref}
@@ -69,13 +82,25 @@ export const TrickZone = forwardRef<HTMLDivElement, TrickZoneProps>(function Tri
         </span>
       </div>
       {plays.map((play) => {
-        const playKey = `${play.playerId}-${play.card}`
+        const key = playKey(play)
         const pos = getSeatPosition(play.seat, mySeat)
+        const entry = SEAT_ENTRY[pos]
+        const isFresh = freshSet.has(key) && !prefersReducedMotion
 
         return (
-          <div key={playKey} className={cn("absolute z-10", POSITION_CLASS[pos])}>
+          <motion.div
+            key={key}
+            className={cn("absolute z-10", POSITION_CLASS[pos])}
+            initial={
+              isFresh
+                ? { x: entry.x, y: entry.y, rotate: entry.rotate, scale: entry.scale, opacity: 0.4 }
+                : false
+            }
+            animate={{ x: 0, y: 0, rotate: 0, scale: 1, opacity: 1 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          >
             <PlayingCard code={play.card} state="played" size="sm" />
-          </div>
+          </motion.div>
         )
       })}
     </div>

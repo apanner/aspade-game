@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
 import {
   History,
   Loader2,
   LogOut,
   PlusCircle,
-  Spade,
   Trophy,
   Users,
   Bot,
@@ -21,6 +21,8 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { MobileNav } from "@/components/shell/mobile-nav"
 import { ActiveGameCard } from "@/components/shell/active-game-card"
+import { AppLogo, AppWordmark } from "@/components/brand/app-logo"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useAuth } from "@/components/auth-provider"
 import { useToast } from "@/hooks/use-toast"
 import { useDashboardData } from "@/hooks/useDashboardData"
@@ -85,7 +87,7 @@ export function Dashboard() {
   if (loading || !user) {
     return (
       <div className="felt-page flex min-h-[100dvh] items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-team-us" />
+        <LoadingSpinner size="md" message="Loading lobby…" showMessage fullScreen={false} />
       </div>
     )
   }
@@ -93,17 +95,26 @@ export function Dashboard() {
   return (
     <div className="felt-page min-h-[100dvh] pb-24">
       <div className="mx-auto max-w-sm px-4 py-6 space-y-6">
-        <div className="glass-panel p-5 text-center glow-us relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-team-us/5 via-transparent to-team-them/5 pointer-events-none" />
-          <div className="inline-flex p-3 rounded-2xl bg-team-us/10 mb-3 relative">
-            <Spade className="h-10 w-10 text-team-us" />
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          className="glass-panel p-6 text-center glow-us relative overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-team-us/8 via-transparent to-team-them/6 pointer-events-none" />
+          <div className="absolute -top-16 left-1/2 -translate-x-1/2 h-32 w-32 rounded-full bg-team-us/10 blur-3xl pointer-events-none" />
+          <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-team-us/15 to-cyan-500/10 mb-4 relative border border-team-us/20">
+            <AppLogo size="lg" />
           </div>
-          <h1 className="text-2xl font-bold font-display relative">ASAPDE Live</h1>
-          <p className="text-sm text-muted-foreground mt-1 relative flex items-center justify-center gap-2">
+          <h1 className="text-2xl font-bold font-display relative flex items-center justify-center gap-2">
+            <AppWordmark className="text-2xl" />
+            <span className="text-white/90">Live</span>
+          </h1>
+          <p className="text-sm text-muted-foreground mt-2 relative flex items-center justify-center gap-2">
             <span className="live-dot" />
-            Online 4-player Spades
+            Premium 4-player Spades
           </p>
-        </div>
+        </motion.div>
 
         {liveGame && (
           <button
@@ -209,7 +220,7 @@ export function Dashboard() {
         <div className="glass-panel overflow-hidden">
           <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
             <h2 className="font-semibold font-display flex items-center gap-2">
-              <Spade className="h-4 w-4 text-team-us" />
+              <AppLogo size="xs" glow={false} />
               Your Tables
             </h2>
             <div className="flex items-center gap-2">
@@ -225,7 +236,7 @@ export function Dashboard() {
           </div>
           {fetching && activeGames.length === 0 ? (
             <div className="p-8 flex justify-center">
-              <Loader2 className="h-6 w-6 animate-spin text-team-us" />
+              <LoadingSpinner size="sm" message="Finding tables…" showMessage fullScreen={false} />
             </div>
           ) : activeGames.length === 0 ? (
             <p className="p-6 text-center text-sm text-muted-foreground">

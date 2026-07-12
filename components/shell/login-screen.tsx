@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Gamepad2, Loader2, Play, Users, RefreshCw } from "lucide-react"
+import { motion } from "framer-motion"
+import { Loader2, Play, Users, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AutocompleteInput } from "@/components/ui/autocomplete-input"
 import { TipsCarousel } from "@/components/shell/tips-carousel"
+import { AppLogo, AppWordmark } from "@/components/brand/app-logo"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/components/auth-provider"
 import { sessionStorage } from "@/lib/api"
@@ -120,18 +122,27 @@ export function LoginScreen() {
   return (
     <div className="felt-page flex min-h-[100dvh] flex-col items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center gap-2">
-            <Gamepad2 className="h-8 w-8 text-team-us drop-shadow-[0_0_12px_rgba(0,229,255,0.5)]" />
-            <h1 className="text-4xl font-bold font-display bg-gradient-to-r from-team-us to-cyan-300 bg-clip-text text-transparent">
-              ASAPDE
-            </h1>
-            <Gamepad2 className="h-8 w-8 text-team-us drop-shadow-[0_0_12px_rgba(0,229,255,0.5)]" />
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="text-center space-y-4"
+        >
+          <div className="inline-flex items-center justify-center p-5 rounded-3xl bg-gradient-to-br from-team-us/15 to-cyan-500/10 border border-team-us/25 shadow-[0_0_40px_rgba(0,229,255,0.15)]">
+            <AppLogo size="xl" />
           </div>
+          <h1 className="text-4xl font-bold font-display">
+            <AppWordmark className="text-4xl" />
+          </h1>
           <p className="text-muted-foreground">Live Spades at the card table</p>
-        </div>
+        </motion.div>
 
-        <div className="glass-panel p-6 shadow-2xl glow-us space-y-5">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          className="glass-panel p-6 shadow-2xl glow-us space-y-5"
+        >
           <div className="text-center space-y-1">
             <h2 className="text-xl font-semibold font-display flex items-center justify-center gap-2">
               <Users className="h-5 w-5 text-team-us" />
@@ -173,7 +184,7 @@ export function LoginScreen() {
           </form>
 
           <TipsCarousel />
-        </div>
+        </motion.div>
       </div>
 
       <Dialog open={showResumeDialog} onOpenChange={setShowResumeDialog}>

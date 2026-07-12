@@ -19,7 +19,14 @@ import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { reducedMotionProps } from "./use-card-animation"
 import { NextLeaderPointer } from "./next-leader-pointer"
-import { EMPTY_TRICK_PLAYS, mergeTrickPlaysByPlayer, trickSessionKey } from "@/lib/trick-display"
+import { CardFlyOverlay, getTrickSlotRect, type CardFlyRequest } from "./card-fly-overlay"
+import {
+  EMPTY_TRICK_PLAYS,
+  buildTrickPlays,
+  playKey,
+  sortTrickPlaysBySeat,
+  trickSessionKey,
+} from "@/lib/trick-display"
 import { useGameVoice } from "@/components/voice/game-voice-provider"
 import type { CardCode } from "./card-utils"
 
@@ -139,13 +146,16 @@ export function CardTable({
   const [optimisticPlay, setOptimisticPlay] = useState<TrickPlay | null>(null)
   const [playedOutCards, setPlayedOutCards] = useState<CardCode[]>([])
   const [trickCelebration, setTrickCelebration] = useState<TrickCelebrationData | null>(null)
-  const [accumulatedPlays, setAccumulatedPlays] = useState<TrickPlay[]>([])
+  const [flyRequest, setFlyRequest] = useState<CardFlyRequest | null>(null)
+  const [flyHiddenPlayKey, setFlyHiddenPlayKey] = useState<string | null>(null)
+  const [freshPlayKeys, setFreshPlayKeys] = useState<string[]>([])
   const [nextLeaderId, setNextLeaderId] = useState<string | null>(null)
   const [showRoundBanner, setShowRoundBanner] = useState(false)
   const trickZoneRef = useRef<HTMLDivElement>(null)
   const prevRoundRef = useRef(round)
   const trickSessionRef = useRef(trickSessionKey(round, completedTricksCount))
   const fullTrickSnapshotRef = useRef<TrickPlay[]>([])
+  const prevTrickPlaysRef = useRef<TrickPlay[]>([])
   const celebratedTrickRef = useRef(-1)
   const prevSpadesBrokenRef = useRef(spadesBroken)
   const isBidding = phase === "bidding"
@@ -160,56 +170,50 @@ export function CardTable({
       ? ""
       : trickPlays.map((p) => `${p.playerId}:${p.card}:${p.seat}`).join(",")
 
-  const mergedIncomingPlays = useMemo(() => {
-    const optimistic = optimisticPlay ? [optimisticPlay] : EMPTY_TRICK_PLAYS
-    return mergeTrickPlaysByPlayer(trickPlays, optimistic)
-  }, [trickPlaysKey, optimisticPlay])
+  const currentTrickPlays = useMemo(
+    () =>
+      sortTrickPlaysBySeat(buildTrickPlays(trickPlays, optimisticPlay), mySeat, getSeatPosition),
+    [trickPlaysKey, optimisticPlay, mySeat]
+  )
 
   useEffect(() => {
-    if (trickPlays.length === 0 && !optimisticPlay && !trickCelebration) {
-      setAccumulatedPlays((prev) => (prev.length === 0 ? prev : EMPTY_TRICK_PLAYS))
-      if (fullTrickSnapshotRef.current.length > 0) {
-        fullTrickSnapshotRef.current = []
-      }
-      return
-    }
-    if (trickPlays.length === 0 && !optimisticPlay) return
-    setAccumulatedPlays((prev) => {
-      const merged = mergeTrickPlaysByPlayer(
-        prev,
-        trickPlays,
-        optimisticPlay ? [optimisticPlay] : EMPTY_TRICK_PLAYS
+    if (trickPlays.length === 4) {
+      fullTrickSnapshotRef.current = sortTrickPlaysBySeat(
+        buildTrickPlays(trickPlays, null),
+        mySeat,
+        getSeatPosition
       )
-      if (
-        merged.length === prev.length &&
-        merged.every(
-          (p, i) =>
-            p.playerId === prev[i]?.playerId &&
-            p.card === prev[i]?.card &&
-            p.seat === prev[i]?.seat
-        )
-      ) {
-        return prev
-      }
-      if (merged.length === 4) {
-        fullTrickSnapshotRef.current = merged
-      }
-      return merged
-    })
+    }
+  }, [trickPlaysKey, trickPlays.length, mySeat])
+
+  useEffect(() => {
     if (trickPlays.length > 0) {
       setNextLeaderId(null)
     }
-  }, [trickPlaysKey, trickPlays.length, optimisticPlay, trickCelebration])
+  }, [trickPlaysKey])
 
   useEffect(() => {
-    if (mergedIncomingPlays.length > 0 && trickCelebration) {
-      setTrickCelebration(null)
-      fullTrickSnapshotRef.current = []
-    }
-  }, [mergedIncomingPlays.length, trickCelebration])
+    const prev = prevTrickPlaysRef.current
+    const newOnes = trickPlays.filter(
+      (p) => !prev.some((old) => old.playerId === p.playerId && old.card === p.card)
+    )
+    prevTrickPlaysRef.current = trickPlays
+
+    const botKeys = newOnes
+      .filter((p) => p.playerId !== myPlayerId)
+      .map((p) => playKey(p))
+
+    if (botKeys.length === 0) return
+
+    setFreshPlayKeys(botKeys)
+    const timer = window.setTimeout(() => setFreshPlayKeys([]), 500)
+    return () => window.clearTimeout(timer)
+  }, [trickPlaysKey, myPlayerId, trickPlays])
 
   const showTrickCelebration = !!trickCelebration
-  const displayTrickPlays = showTrickCelebration ? [] : accumulatedPlays
+  const displayTrickPlays = showTrickCelebration
+    ? EMPTY_TRICK_PLAYS
+    : currentTrickPlays.filter((p) => playKey(p) !== flyHiddenPlayKey)
   const isMyTurn = currentTurnId === myPlayerId
   const serverHasMyPlay = trickPlays.some((p) => p.playerId === myPlayerId)
   const hasPlayedThisTrick =
@@ -234,9 +238,12 @@ export function CardTable({
       celebratedTrickRef.current = -1
       trickSessionRef.current = trickSessionKey(round, completedTricksCount)
       fullTrickSnapshotRef.current = []
+      prevTrickPlaysRef.current = []
       setOptimisticPlay(null)
       setPlayedOutCards([])
-      setAccumulatedPlays((prev) => (prev.length === 0 ? prev : EMPTY_TRICK_PLAYS))
+      setFlyRequest(null)
+      setFlyHiddenPlayKey(null)
+      setFreshPlayKeys([])
       setTrickCelebration(null)
       setNextLeaderId(null)
       setShowRoundBanner(true)
@@ -276,7 +283,11 @@ export function CardTable({
       }
     }
 
-    setAccumulatedPlays((prev) => (prev.length === 0 ? prev : EMPTY_TRICK_PLAYS))
+    setOptimisticPlay(null)
+    setPlayedOutCards([])
+    setFlyRequest(null)
+    setFlyHiddenPlayKey(null)
+    prevTrickPlaysRef.current = []
     if (fullTrickSnapshotRef.current.length > 0) {
       fullTrickSnapshotRef.current = []
     }
@@ -284,8 +295,8 @@ export function CardTable({
 
   const handleTrickCelebrationDone = () => {
     setTrickCelebration(null)
-    setAccumulatedPlays((prev) => (prev.length === 0 ? prev : EMPTY_TRICK_PLAYS))
     fullTrickSnapshotRef.current = []
+    prevTrickPlaysRef.current = []
     if (currentTurnId) {
       setNextLeaderId(currentTurnId)
       window.setTimeout(() => setNextLeaderId(null), prefersReducedMotion ? 800 : 2400)
@@ -299,6 +310,13 @@ export function CardTable({
     )
     if (landed) setOptimisticPlay(null)
   }, [trickPlays, optimisticPlay])
+
+  useEffect(() => {
+    if (!serverHasMyPlay) return
+    const myPlay = trickPlays.find((p) => p.playerId === myPlayerId)
+    if (!myPlay) return
+    setPlayedOutCards((prev) => prev.filter((c) => c !== myPlay.card))
+  }, [trickPlaysKey, serverHasMyPlay, myPlayerId, trickPlays])
 
   useEffect(() => {
     if (trickPlays.length === 0) {
@@ -362,8 +380,19 @@ export function CardTable({
     return result
   }, [players, seatMap])
 
+  const handleFlyComplete = () => {
+    if (flyRequest) {
+      setOptimisticPlay({
+        playerId: myPlayerId,
+        card: flyRequest.card,
+        seat: mySeat,
+      })
+    }
+    setFlyRequest(null)
+    setFlyHiddenPlayKey(null)
+  }
+
   const handlePlayCard = async (card: CardCode, sourceRect?: DOMRect) => {
-    void sourceRect
     if (isBidding) return
     if (hasPlayedThisTrick) {
       toast({ title: "Already played", description: "Wait for the other players in this trick." })
@@ -387,7 +416,25 @@ export function CardTable({
     if (playing) return
 
     setPlayedOutCards((prev) => (prev.includes(card) ? prev : [...prev, card]))
-    setOptimisticPlay({ playerId: myPlayerId, card, seat: mySeat })
+
+    const container = trickZoneRef.current?.getBoundingClientRect()
+    const myPos = getSeatPosition(mySeat, mySeat)
+    if (sourceRect && container && !prefersReducedMotion) {
+      const to = getTrickSlotRect(container, myPos)
+      setFlyHiddenPlayKey(playKey({ playerId: myPlayerId, card, seat: mySeat }))
+      setFlyRequest({
+        card,
+        from: {
+          left: sourceRect.left,
+          top: sourceRect.top,
+          width: sourceRect.width,
+          height: sourceRect.height,
+        },
+        to,
+      })
+    } else {
+      setOptimisticPlay({ playerId: myPlayerId, card, seat: mySeat })
+    }
 
     setPlaying(true)
     try {
@@ -395,6 +442,8 @@ export function CardTable({
     } catch {
       setPlayedOutCards((prev) => prev.filter((c) => c !== card))
       setOptimisticPlay(null)
+      setFlyRequest(null)
+      setFlyHiddenPlayKey(null)
       toast({
         title: "Play failed",
         description: "Your card was returned to your hand.",
@@ -492,6 +541,7 @@ export function CardTable({
                 isDropTarget={!!draggingCard && canPlayNow}
                 celebrating={showTrickCelebration}
                 leaderLabel={trickLeaderLabel}
+                freshPlayKeys={freshPlayKeys}
               />
               {showTrickCelebration && (
                 <TrickCelebration
@@ -654,6 +704,7 @@ export function CardTable({
         </div>
       }
     />
+    <CardFlyOverlay request={flyRequest} onComplete={handleFlyComplete} />
     </LayoutGroup>
   )
 }

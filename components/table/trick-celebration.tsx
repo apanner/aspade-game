@@ -86,13 +86,13 @@ export function TrickCelebration({ data, mySeat, onDone }: TrickCelebrationProps
           <motion.div
             key={`${data.trickIndex}-${play.playerId}-${play.card}`}
             className={cn("absolute", POSITION_CLASS[pos])}
-            initial={{ opacity: 0, scale: 0.6 }}
+            initial={{ opacity: 1, scale: 1, x: 0, y: 0 }}
             animate={
               sweep && !prefersReducedMotion
                 ? { x: fly.x, y: fly.y, opacity: 0, scale: 0.45 }
                 : { x: 0, y: 0, opacity: 1, scale: 1 }
             }
-            transition={{ duration: 0.6, ease: "easeInOut" }}
+            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
           >
             <PlayingCard
               code={play.card}
