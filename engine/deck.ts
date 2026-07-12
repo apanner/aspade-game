@@ -1,25 +1,42 @@
 import type { CardCode, Rank, Suit } from './types'
 import { RANKS, SUITS } from './types'
 
+/** One standard 52-card deck (no jokers). */
 export function createDeck(): CardCode[] {
   const deck: CardCode[] = []
   for (const suit of SUITS) {
     for (const rank of RANKS) {
-      deck.push(`${rank}${suit}` as CardCode)
+      deck.push(`${rank}${suit}`)
     }
   }
   return deck
 }
 
-export function shuffleDeck(deck: CardCode[], seed?: number): CardCode[] {
-  const result = [...deck]
-  let random = seed !== undefined ? mulberry32(seed) : Math.random
-
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(random() * (i + 1))
-    ;[result[i], result[j]] = [result[j], result[i]]
+/** Deck sets for multi-player tables — duplicate cards get @2, @3 suffix for unique instances. */
+export function createMultiDeck(deckCount: number): CardCode[] {
+  const count = Math.max(1, Math.min(deckCount, 4))
+  const decks: CardCode[] = []
+  for (let d = 0; d < count; d++) {
+    const suffix = d === 0 ? '' : `@${d + 1}`
+    for (const suit of SUITS) {
+      for (const rank of RANKS) {
+        decks.push(`${rank}${suit}${suffix}`)
+      }
+    }
   }
-  return result
+  return decks
+}
+
+/** 2 players → 1 deck, 4 → 2 decks, 6 → 3 decks. */
+export function defaultDeckCountForPlayers(playerCount: number): number {
+  if (playerCount <= 2) return 1
+  if (playerCount <= 4) return 2
+  if (playerCount <= 6) return 3
+  return Math.max(1, Math.ceil(playerCount / 2))
+}
+
+export function maxCardsPerPlayer(playerCount: number, deckCount: number): number {
+  return Math.floor((52 * deckCount) / Math.max(1, playerCount))
 }
 
 function mulberry32(seed: number): () => number {
@@ -31,8 +48,27 @@ function mulberry32(seed: number): () => number {
   }
 }
 
+export function shuffleArray<T>(items: T[], seed?: number): T[] {
+  const result = [...items]
+  const random = seed !== undefined ? mulberry32(seed) : Math.random
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1))
+    ;[result[i], result[j]] = [result[j], result[i]]
+  }
+  return result
+}
+
+export function shuffleDeck(deck: CardCode[], seed?: number): CardCode[] {
+  return shuffleArray(deck, seed)
+}
+
 export function parseCard(code: CardCode): { rank: Rank; suit: Suit } {
-  const suit = code.slice(-1) as Suit
-  const rank = code.slice(0, -1) as Rank
+  const base = code.split('@')[0]
+  const suit = base.slice(-1) as Suit
+  const rank = base.slice(0, -1) as Rank
   return { rank, suit }
+}
+
+export function cardBaseCode(code: CardCode): string {
+  return code.split('@')[0]
 }

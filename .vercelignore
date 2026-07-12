@@ -1,7 +1,4 @@
 **/node_modules
 **/.next
-front/data
 engine/node_modules
-front/front_ref
-front/front_refere
-front/serv_ref
+data

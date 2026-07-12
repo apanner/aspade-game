@@ -16,12 +16,8 @@ export function getLegalPlays(hand: CardCode[], trick: Trick | null, spadesBroke
   return [...hand]
 }
 
-export function getLegalLeadPlays(hand: CardCode[], spadesBroken: boolean): CardCode[] {
-  const spades = hand.filter((c) => parseCard(c).suit === 'S')
-  const nonSpades = hand.filter((c) => parseCard(c).suit !== 'S')
-
-  if (spadesBroken || nonSpades.length === 0) return [...hand]
-  return nonSpades
+export function getLegalLeadPlays(hand: CardCode[], _spadesBroken: boolean): CardCode[] {
+  return [...hand]
 }
 
 export function isLegalPlay(
@@ -38,7 +34,7 @@ export function wouldBreakSpades(card: CardCode, trick: Trick | null, spadesBrok
   if (spadesBroken) return false
   const { suit } = parseCard(card)
   if (suit !== 'S') return false
-  if (!trick || trick.plays.length === 0) return false
+  if (!trick || trick.plays.length === 0) return true
   return trick.leadSuit !== 'S'
 }
 

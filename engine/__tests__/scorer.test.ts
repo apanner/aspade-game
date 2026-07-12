@@ -13,6 +13,7 @@ describe('scorer', () => {
     it('awards bid * 10 plus overtricks when bid is made', () => {
       expect(computeTeamRoundScore(4, 4)).toBe(40)
       expect(computeTeamRoundScore(4, 6)).toBe(42)
+      expect(computeTeamRoundScore(2, 2)).toBe(20)
     })
 
     it('penalizes bid * -10 when bid is not made', () => {

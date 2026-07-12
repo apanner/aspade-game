@@ -1,6 +1,6 @@
 export type Suit = 'S' | 'H' | 'D' | 'C'
 export type Rank = '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K' | 'A'
-export type CardCode = `${Rank}${Suit}`
+export type CardCode = string
 export type PlayMode = 'manual' | 'live'
 
 export type LivePhase = 'dealing' | 'bidding' | 'playing' | 'round_end'
@@ -34,12 +34,15 @@ export interface LiveState {
   roundBids: Record<string, number>
   biddingOrder: string[]
   biddingIndex: number
+  cardsPerRound: number
+  deckCount: number
 }
 
 export type EngineAction =
   | { type: 'START_LIVE_GAME' }
   | { type: 'SUBMIT_BID'; playerId: string; bid: number }
   | { type: 'PLAY_CARD'; playerId: string; card: CardCode }
+  | { type: 'RESOLVE_TRICK' }
   | { type: 'ADVANCE_ROUND' }
 
 export type GameEvent =
@@ -69,6 +72,7 @@ export interface EngineRound {
 
 export interface EngineGame {
   id: string
+  hostId?: string
   playMode: PlayMode
   status: string
   currentRound: number
@@ -76,6 +80,7 @@ export interface EngineGame {
   players: Record<string, EnginePlayer>
   rounds: EngineRound[]
   liveState?: LiveState
+  deckCount?: number
   teamConfig?: {
     gameMode: string
     numberOfTeams: number

@@ -8,7 +8,7 @@ function makeGame(): EngineGame {
     id: 'test',
     playMode: 'live',
     status: 'lobby',
-    currentRound: 1,
+    currentRound: 13,
     totalRounds: 1,
     teamConfig: { gameMode: 'teams', numberOfTeams: 2, playersPerTeam: 2 },
     players: {

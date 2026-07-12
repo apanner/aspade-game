@@ -3,12 +3,12 @@
 **Version:** 1.1  
 **Date:** July 3, 2026  
 **Goal:** Production-ready, world-class multiplayer Spades PWA  
-**Base app:** `aspade_game/front` ← **all code lives here**  
+**Base app:** `aspade_game/` (Next.js root — `app/`, `components/`, `lib/`)  
 **Do NOT touch:** `aspade_railway/` (legacy deploy target only)  
 **Engine:** `aspade_game/engine/`  
 **Docs:** `gui_design.md`, `plan/Architect.md`, `plan/final_plan.md`
 
-> **Correction (Jul 3):** Prior sprint wrongly integrated into `aspade_railway/front`. User scope is **`aspade_game` only**. Railway changes are orphaned; migrate/port into `aspade_game/front`.
+> **Correction (Jul 3):** Prior sprint wrongly integrated into `aspade_railway/front`. User scope is **`aspade_game` only**. The old `front/` copy has been removed; all GUI code lives at `aspade_game/` root.
 
 ---
 
@@ -44,7 +44,7 @@
 - [x] **M12** Turn timer + spades broken banner
 - [x] **M13** Round celebration auto-triggers from engine (live scoring transition)
 - [x] **M14** Web Audio FX in RoundCelebration (existing component)
-- [ ] **M15** LiveKit voice (mute default) — Phase 4
+- [x] **M15** WebRTC voice chat (mute by default, speaking indicators on seats)
 - [x] **M16** PWA manifest (`app/manifest.ts`); Serwist deferred
 - [~] **M17** Load test 50+ concurrent games — sim script only
 - [ ] **M18** iOS Safari + Android Chrome QA matrix green — manual QA
@@ -231,14 +231,14 @@
 
 ### Local dev
 ```bash
-cd aspade_game/front && npm run dev    # port 3010
+cd aspade_game && npm run dev
 cd aspade_game/engine && npm test
 ```
 
 ### Live E2E simulation
 ```bash
-cd aspade_game/front && npm run dev
-cd aspade_game/front && npm run simulate:live
+cd aspade_game && npm run dev
+cd aspade_game && npm run simulate:live
 ```
 
 ### 4-player manual smoke

@@ -1,0 +1,51 @@
+# Pings Supabase daily so free-tier projects stay active (pauses after ~7 days idle).
+#
+# Required GitHub repo secrets:
+#   SUPABASE_URL          e.g. https://xxxx.supabase.co
+#   SUPABASE_ANON_KEY     your anon/public key
+#
+# Optional:
+#   SUPABASE_KEEPALIVE_TABLE  default: _keepalive
+#
+# One-time setup: run scripts/supabase-keepalive.sql in Supabase SQL Editor.
+
+name: Supabase keepalive
+
+on:
+  schedule:
+    # Daily at 09:00 UTC
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping Supabase database
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_KEEPALIVE_TABLE: ${{ secrets.SUPABASE_KEEPALIVE_TABLE }}
+        run: |
+          set -euo pipefail
+          TABLE="${SUPABASE_KEEPALIVE_TABLE:-_keepalive}"
+          BASE="${SUPABASE_URL%/}"
+          HEADERS=(-H "apikey: ${SUPABASE_ANON_KEY}" -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+
+          echo "Pinging ${BASE}/rest/v1/${TABLE}"
+          if curl -fsS "${BASE}/rest/v1/${TABLE}?select=id&limit=1" "${HEADERS[@]}"; then
+            echo "DB select OK"
+            exit 0
+          fi
+
+          echo "Trying rpc/keepalive..."
+          if curl -fsS -X POST "${BASE}/rest/v1/rpc/keepalive" \
+            "${HEADERS[@]}" -H "Content-Type: application/json" -d '{}'; then
+            echo "RPC OK"
+            exit 0
+          fi
+
+          echo "Trying auth health..."
+          curl -fsS "${BASE}/auth/v1/health" -H "apikey: ${SUPABASE_ANON_KEY}"
+          echo "Auth health OK"

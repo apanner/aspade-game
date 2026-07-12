@@ -1,0 +1,131 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import {
+  Headphones,
+  Loader2,
+  MessageSquare,
+  Mic,
+  MicOff,
+} from "lucide-react"
+import { useGameVoice } from "@/components/voice/game-voice-provider"
+import { useGameChat } from "@/components/chat/game-chat-provider"
+import { TableChatDrawer } from "@/components/chat/table-chat-drawer"
+import { unlockVoiceAudio } from "@/lib/voice/mobile-audio"
+import { cn } from "@/lib/utils"
+
+type TableHudCommsProps = {
+  myPlayerId: string
+  players: { id: string; name: string }[]
+}
+
+export function TableHudComms({ myPlayerId, players }: TableHudCommsProps) {
+  const {
+    isSupported,
+    isJoined,
+    isConnecting,
+    isMicOn,
+    participantCount,
+    joinVoice,
+    toggleMic,
+    isRequestingMicPermission,
+  } = useGameVoice()
+
+  const { unreadCount, openDmWith, setOpenDmWith } = useGameChat()
+  const [chatOpen, setChatOpen] = useState(false)
+
+  useEffect(() => {
+    if (openDmWith) {
+      setChatOpen(true)
+    }
+  }, [openDmWith])
+
+  if (!isSupported) {
+    return (
+      <button
+        type="button"
+        className="table-hud-icon-btn opacity-40"
+        disabled
+        aria-label="Voice not supported"
+        title="Voice not supported"
+      >
+        <Headphones className="h-4 w-4" />
+      </button>
+    )
+  }
+
+  const handleVoiceClick = () => {
+    if (isConnecting || isRequestingMicPermission) return
+    void unlockVoiceAudio()
+    if (!isJoined) {
+      void joinVoice()
+      return
+    }
+    void toggleMic()
+  }
+
+  return (
+    <>
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={handleVoiceClick}
+          disabled={isConnecting || isRequestingMicPermission}
+          className={cn(
+            "table-hud-icon-btn relative",
+            isJoined && isMicOn && "table-hud-icon-btn--active",
+            isJoined && !isMicOn && "table-hud-icon-btn--live"
+          )}
+          aria-label={
+            !isJoined
+              ? "Join voice chat"
+              : isMicOn
+                ? "Mute microphone"
+                : "Unmute microphone"
+          }
+          title={!isJoined ? "Join voice" : isMicOn ? "Mic on" : "Mic off"}
+        >
+          {isConnecting || isRequestingMicPermission ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : !isJoined ? (
+            <Headphones className="h-4 w-4" />
+          ) : isMicOn ? (
+            <Mic className="h-4 w-4" />
+          ) : (
+            <MicOff className="h-4 w-4" />
+          )}
+          {isJoined && participantCount > 0 && (
+            <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-team-us px-0.5 text-[8px] font-bold text-black">
+              {participantCount}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setChatOpen(true)}
+          className="table-hud-icon-btn relative"
+          aria-label="Open chat"
+          title="Chat"
+        >
+          <MessageSquare className="h-4 w-4" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-team-them px-0.5 text-[8px] font-bold text-white">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      <TableChatDrawer
+        open={chatOpen}
+        onOpenChange={(nextOpen) => {
+          setChatOpen(nextOpen)
+          if (!nextOpen) setOpenDmWith(null)
+        }}
+        myPlayerId={myPlayerId}
+        players={players}
+      />
+    </>
+  )
+}

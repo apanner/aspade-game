@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getLegalLeadPlays, getLegalPlays, isLegalPlay } from '../legal-plays'
+import { getLegalLeadPlays, getLegalPlays, isLegalPlay, wouldBreakSpades } from '../legal-plays'
 import { createEmptyTrick, addPlayToTrick } from '../trick-resolver'
 import type { CardCode } from '../types'
 
@@ -14,10 +14,13 @@ describe('legal-plays', () => {
     expect(getLegalPlays(hand, trick, false)).toEqual(['2H', '5H'])
   })
 
-  it('cannot lead spades before broken unless only spades', () => {
+  it('allows leading spades before broken (player choice)', () => {
     const hand: CardCode[] = ['2S', '5H', 'KD']
-    expect(getLegalLeadPlays(hand, false)).toEqual(['5H', 'KD'])
-    expect(getLegalLeadPlays(['2S', 'KS'], false)).toEqual(['2S', 'KS'])
+    expect(getLegalLeadPlays(hand, false)).toEqual(['2S', '5H', 'KD'])
+  })
+
+  it('leading spades marks spades broken', () => {
+    expect(wouldBreakSpades('2S', createEmptyTrick(0), false)).toBe(true)
   })
 
   it('allows any card when void in led suit', () => {

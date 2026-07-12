@@ -1,9 +1,9 @@
-# Clear ALL Vercel env vars, then sync from aspade_game/front/.env.local
+# Clear ALL Vercel env vars, then sync from aspade_game/.env.local
 # Usage: pwsh scripts/sync-vercel-env.ps1
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
-$envFile = Join-Path $root "front\.env.local"
+$envFile = Join-Path $root ".env.local"
 $projectId = "prj_MzviPsEDUA32RsxyIUUtpc8mIKkm"
 $teamId = "team_tZdhcUGW2nmpZnG5FH18kTqb"
 $skip = @("VERCEL_OIDC_TOKEN", "VERCEL_TOKEN", "NX_DAEMON", "TURBO_*")
@@ -34,7 +34,7 @@ foreach ($item in $existing.envs) {
   Write-Host "Removed $($item.key)"
 }
 
-Write-Host "Adding vars from front/.env.local..."
+Write-Host "Adding vars from .env.local..."
 Get-Content $envFile | ForEach-Object {
   if ($_ -match '^\s*#' -or $_ -match '^\s*$') { return }
   if ($_ -match '^([^=]+)=(.*)$') {

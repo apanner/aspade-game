@@ -1,7 +1,8 @@
 import type { CardCode, EngineAction, EngineGame, EngineResult, GameEvent, LiveState } from './types'
 // LiveState used in requireLiveState return type
 import { canPlayerBid, validateBid } from './bidding'
-import { assignSeats, dealHands, playerLeftOfDealer } from './deal'
+import { assignSeats, dealProgressiveRound, playerLeftOfDealer, randomDealerSeat } from './deal'
+import { defaultDeckCountForPlayers } from './deck'
 import { isLegalPlay, wouldBreakSpades } from './legal-plays'
 import { addPlayToTrick, createEmptyTrick, resolveTrickWinner } from './trick-resolver'
 import { aggregateTeamBid, aggregateTeamTricks, computeTeamRoundScore, getTeamsFromPlayers } from './scorer'
@@ -15,6 +16,8 @@ export function applyEngineAction(game: EngineGame, action: EngineAction, seed?:
       return submitBid(game, action.playerId, action.bid)
     case 'PLAY_CARD':
       return playCard(game, action.playerId, action.card)
+    case 'RESOLVE_TRICK':
+      return resolveStuckTrick(game)
     case 'ADVANCE_ROUND':
       return advanceRound(game, seed)
     default:
@@ -28,9 +31,29 @@ function startLiveGame(game: EngineGame, seed?: number): EngineResult {
     throw new EngineError('Live mode requires exactly 4 players', 'INVALID_PLAYER_COUNT')
   }
 
-  const { seats, seatToPlayer } = assignSeats(playerIds)
-  const dealerSeat = game.liveState?.dealerSeat ?? 0
-  const { hands } = dealHands(playerIds, dealerSeat, seed)
+  const seatPlayers = playerIds.map((id) => ({
+    id,
+    team: game.players[id]?.team,
+    isTeamLeader: game.players[id]?.isTeamLeader,
+  }))
+  const isIndividual = game.teamConfig?.gameMode === 'individual'
+  const seatOptions =
+    isIndividual && game.hostId ? { southPlayerId: game.hostId, seatSeed: seed } : undefined
+  const { seats, seatToPlayer } = assignSeats(seatPlayers, seatOptions)
+  const dealerSeat =
+    game.liveState?.dealerSeat !== undefined
+      ? game.liveState.dealerSeat
+      : randomDealerSeat(seed)
+  const cardsPerRound = game.currentRound
+  const deckCount = game.deckCount ?? defaultDeckCountForPlayers(playerIds.length)
+  const { hands } = dealProgressiveRound(
+    seatPlayers,
+    dealerSeat,
+    cardsPerRound,
+    seed,
+    seatOptions,
+    deckCount
+  )
 
   const biddingOrder: string[] = []
   const isTeamGame = game.teamConfig?.gameMode === 'teams'
@@ -63,6 +86,8 @@ function startLiveGame(game: EngineGame, seed?: number): EngineResult {
     roundBids: {},
     biddingOrder,
     biddingIndex: 0,
+    cardsPerRound,
+    deckCount,
   }
 
   const roundIndex = game.currentRound - 1
@@ -84,6 +109,7 @@ function startLiveGame(game: EngineGame, seed?: number): EngineResult {
       ...game,
       playMode: 'live',
       status: 'bidding',
+      deckCount,
       liveState,
       rounds,
     },
@@ -105,7 +131,7 @@ function submitBid(game: EngineGame, playerId: string, bid: number): EngineResul
     throw new EngineError('Not your turn to bid', 'NOT_YOUR_TURN')
   }
 
-  validateBid(bid)
+  validateBid(bid, live.cardsPerRound ?? game.currentRound)
 
   const roundBids = { ...live.roundBids, [playerId]: bid }
   const nextIndex = live.biddingIndex + 1
@@ -184,6 +210,26 @@ function playCard(game: EngineGame, playerId: string, card: CardCode): EngineRes
     return { game: { ...game, liveState: updatedLive }, events }
   }
 
+  return finalizeTrick(game, live, trick, hands, spadesBroken, events)
+}
+
+function resolveStuckTrick(game: EngineGame): EngineResult {
+  const live = requireLiveState(game, 'playing')
+  const trick = live.currentTrick
+  if (!trick || trick.plays.length !== 4) {
+    throw new EngineError('Trick is not ready to resolve', 'TRICK_NOT_FULL')
+  }
+  return finalizeTrick(game, live, trick, live.hands, live.spadesBroken, [])
+}
+
+function finalizeTrick(
+  game: EngineGame,
+  live: LiveState,
+  trick: NonNullable<LiveState['currentTrick']>,
+  hands: Record<string, CardCode[]>,
+  spadesBroken: boolean,
+  events: GameEvent[]
+): EngineResult {
   const { winnerId, winnerSeat } = resolveTrickWinner(trick)
   const tricksWon = { ...live.tricksWon, [winnerId]: (live.tricksWon[winnerId] ?? 0) + 1 }
   events.push({ type: 'TRICK_COMPLETED', winnerId, trick: { ...trick, winnerId, winnerSeat } })
@@ -197,17 +243,30 @@ function playCard(game: EngineGame, playerId: string, card: CardCode): EngineRes
 
   const completedTricks = [...live.completedTricks, { ...trick, winnerId, winnerSeat }]
 
-  if (completedTricks.length >= 13) {
-    const teams = getTeamsFromPlayers(game)
-    const teamScores: Record<string, number> = {}
-    for (const [teamId, memberIds] of Object.entries(teams)) {
-      const bid = aggregateTeamBid(memberIds, live.roundBids)
-      const won = aggregateTeamTricks(memberIds, tricksWon)
-      teamScores[teamId] = computeTeamRoundScore(bid, won)
+  const tricksTarget = live.cardsPerRound ?? game.currentRound
+
+  if (completedTricks.length >= tricksTarget) {
+    const isTeamGame = game.teamConfig?.gameMode === 'teams'
+    const roundScores: Record<string, number> = {}
+
+    if (isTeamGame) {
+      const teams = getTeamsFromPlayers(game)
+      for (const [teamId, memberIds] of Object.entries(teams)) {
+        const bid = aggregateTeamBid(memberIds, live.roundBids)
+        const won = aggregateTeamTricks(memberIds, tricksWon)
+        roundScores[teamId] = computeTeamRoundScore(bid, won)
+      }
+    } else {
+      for (const playerId of Object.keys(game.players)) {
+        const bid = live.roundBids[playerId] ?? 0
+        const won = tricksWon[playerId] ?? 0
+        roundScores[playerId] = computeTeamRoundScore(bid, won)
+      }
     }
+
     rounds[roundIndex] = {
       ...rounds[roundIndex],
-      scores: teamScores,
+      scores: roundScores,
       status: 'completed',
     }
     events.push({ type: 'ROUND_COMPLETED', tricksWon })
@@ -249,6 +308,7 @@ function advanceRound(game: EngineGame, seed?: number): EngineResult {
     ...game,
     currentRound: nextRound,
     liveState: { ...(game.liveState as LiveState), dealerSeat },
+    deckCount: game.deckCount ?? (game.liveState as LiveState)?.deckCount,
     rounds: [
       ...game.rounds,
       { round: nextRound, bids: {}, tricks: {}, scores: {}, status: 'bidding' },
