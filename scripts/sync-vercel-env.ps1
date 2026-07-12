@@ -8,6 +8,13 @@ $projectId = "prj_MzviPsEDUA32RsxyIUUtpc8mIKkm"
 $teamId = "team_tZdhcUGW2nmpZnG5FH18kTqb"
 $skip = @("VERCEL_OIDC_TOKEN", "VERCEL_TOKEN", "NX_DAEMON", "TURBO_*")
 
+# Ensure CRON_SECRET exists for Vercel cron
+if (-not (Select-String -Path $envFile -Pattern '^CRON_SECRET=' -Quiet)) {
+  $secret = -join ((48..57) + (97..102) | Get-Random -Count 32 | ForEach-Object { [char]$_ })
+  Add-Content -Path $envFile -Value "CRON_SECRET=$secret"
+  Write-Host "Generated CRON_SECRET in .env.local"
+}
+
 if (-not (Test-Path $envFile)) {
   Write-Error "Missing $envFile"
 }
