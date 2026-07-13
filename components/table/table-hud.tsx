@@ -60,22 +60,22 @@ export function TableHUD({
           <span className="mx-1.5 text-white/20">|</span>
           {isIndividualMode ? (
             <>
-              <span className={usLeading ? "text-sky-300" : "text-sky-300/80"}>{usScore}</span>
+              <span className={usLeading ? "text-[#8fa7ff]" : "text-[#8fa7ff]/80"}>{usScore}</span>
               {myRank != null && totalPlayers != null && (
                 <span className="text-white/40 ml-1">#{myRank}</span>
               )}
             </>
           ) : (
             <>
-              <span className={usLeading ? "text-sky-300" : "text-sky-300/75"}>{usScore}</span>
+              <span className={usLeading ? "text-[#8fa7ff]" : "text-[#8fa7ff]/75"}>{usScore}</span>
               <span className="text-white/25 mx-1">–</span>
-              <span className={themLeading ? "text-orange-300" : "text-orange-300/75"}>{themScore}</span>
+              <span className={themLeading ? "text-[#ff7a45]" : "text-[#ff7a45]/75"}>{themScore}</span>
             </>
           )}
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {spadesBroken && (
-            <span className="rounded px-1.5 py-0.5 text-[9px] font-bold text-violet-300 border border-violet-400/25 bg-violet-500/10">
+            <span className="rounded px-1.5 py-0.5 text-[9px] font-bold text-white/90 border border-white/20 bg-white/10">
               ♠
             </span>
           )}

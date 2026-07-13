@@ -31,15 +31,15 @@ export function RoundProgress({ round, totalRounds = 13, cardsPerRound, classNam
               key={roundNumber}
               className={cn(
                 "relative flex-1 h-1 rounded-sm overflow-hidden",
-                isPast && "bg-sky-500/35",
-                isCurrent && "bg-amber-400/25 ring-1 ring-amber-400/40",
+                isPast && "bg-[#8fa7ff]/35",
+                isCurrent && "bg-[#ff7a45]/25 ring-1 ring-[#ff7a45]/40",
                 !isPast && !isCurrent && "bg-white/[0.06]"
               )}
               title={`Round ${roundNumber}`}
             >
               {isCurrent && !prefersReducedMotion && (
                 <motion.div
-                  className="absolute inset-0 bg-amber-400/30"
+                  className="absolute inset-0 bg-[#ff7a45]/30"
                   animate={{ opacity: [0.3, 0.7, 0.3] }}
                   transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
                 />

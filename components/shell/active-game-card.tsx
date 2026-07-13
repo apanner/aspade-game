@@ -1,7 +1,6 @@
 "use client"
 
 import { Users } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
 type ActiveGameCardProps = {
@@ -29,27 +28,22 @@ export function ActiveGameCard({
       type="button"
       onClick={onClick}
       className={cn(
-        "w-full text-left rounded-xl border p-4 transition-all active:scale-[0.98]",
-        isLive && "border-team-us/40 bg-team-us/5 glow-us",
-        isLobby && "border-team-them/30 bg-team-them/5",
-        !isLive && !isLobby && "border-white/10 bg-black/20"
+        "w-full text-left rounded-xl border px-3.5 py-3 transition-all active:scale-[0.99]",
+        isLive && "border-[#3155e7]/60 bg-[#17285f]",
+        isLobby && "border-[#ff7a45]/50 bg-[#ff7a45]/10",
+        !isLive && !isLobby && "border-[#252c39] bg-[#121722]"
       )}
     >
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <p className="font-semibold truncate">{title}</p>
-        {isLive && (
-          <Badge className="bg-team-us/20 text-team-us border-team-us/40 text-[10px] shrink-0">
-            <span className="live-dot mr-1" />
-            LIVE
-          </Badge>
-        )}
+      <div className="flex items-start justify-between gap-2">
+        <p className="font-medium text-[14px] text-white truncate">{title}</p>
+        {isLive && <span className="lobby-live-badge shrink-0">Live</span>}
         {isLobby && (
-          <Badge variant="outline" className="border-team-them/40 text-team-them text-[10px] shrink-0">
-            LOBBY
-          </Badge>
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-orange-300/90 shrink-0">
+            Lobby
+          </span>
         )}
       </div>
-      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+      <div className="mt-1.5 flex items-center gap-3 text-[11px] text-white/50">
         <span className="flex items-center gap-1">
           <Users className="w-3 h-3" />
           {playerCount}/4
@@ -59,7 +53,6 @@ export function ActiveGameCard({
             R{currentRound}/{totalRounds}
           </span>
         )}
-        <span className="capitalize">{status}</span>
       </div>
     </button>
   )

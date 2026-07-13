@@ -58,9 +58,9 @@ export function BidWheelPicker({ min = 0, max, value, onChange, className }: Bid
       aria-valuemin={min}
       aria-valuemax={max}
     >
-      <div className="pointer-events-none absolute inset-y-0 left-1/2 z-20 w-9 -translate-x-1/2 rounded-lg bg-team-us/10 ring-1 ring-team-us/40 shadow-[0_0_12px_rgba(0,229,255,0.25)]" />
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-[#0a1820] to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-[#0a1820] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 left-1/2 z-20 w-9 -translate-x-1/2 rounded-lg bg-[#8fa7ff]/10 ring-1 ring-[#8fa7ff]/40 shadow-[0_0_12px_rgba(143,167,255,0.25)]" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-[#090e20] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-[#090e20] to-transparent" />
 
       <div
         ref={scrollRef}
@@ -89,7 +89,7 @@ export function BidWheelPicker({ min = 0, max, value, onChange, className }: Bid
                 className={cn(
                   "text-base font-bold tabular-nums transition-all duration-150",
                   option === value
-                    ? "text-team-us drop-shadow-[0_0_6px_rgba(0,229,255,0.55)]"
+                    ? "text-[#8fa7ff] drop-shadow-[0_0_6px_rgba(143,167,255,0.55)]"
                     : "text-white/50"
                 )}
                 style={{ opacity, transform: `scale(${scale})` }}

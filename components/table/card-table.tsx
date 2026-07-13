@@ -671,7 +671,7 @@ export function CardTable({
                 initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="pointer-events-none absolute inset-x-0 top-1 z-50 mx-auto w-fit status-chip text-violet-200 border-violet-400/30"
+                className="pointer-events-none absolute inset-x-0 top-1 z-50 mx-auto w-fit status-chip text-[#8fa7ff] border-[#3155e7]/30"
                 role="status"
                 aria-live="assertive"
               >
@@ -685,7 +685,7 @@ export function CardTable({
         <div className="relative flex flex-col">
           <div className="px-2 pt-1.5">
             {!isBidding && canPlayNow && legalCards && legalCards.length > 0 && (
-              <p className="mb-0.5 text-center text-[8px] uppercase tracking-widest text-amber-300/90 font-semibold">
+              <p className="mb-0.5 text-center text-[8px] uppercase tracking-widest text-[#ff7a45] font-semibold">
                 {displayTrickPlays.length === 0 && lastCompletedTrick?.winnerId === myPlayerId
                   ? "You won — play your card"
                   : leadSuit

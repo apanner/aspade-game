@@ -39,7 +39,7 @@ export function RoundCompleteBanner({
         className="mx-3 w-full max-w-[240px] rounded-xl border border-white/10 bg-[var(--surface-ink)] p-3 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <p className="text-center text-[9px] font-semibold uppercase tracking-widest text-amber-300/90">
+        <p className="text-center text-[9px] font-semibold uppercase tracking-widest text-[#ff7a45]">
           Round {round}
         </p>
         <ul className="mt-2 space-y-1">
@@ -48,7 +48,7 @@ export function RoundCompleteBanner({
               key={entry.playerId}
               className={cn(
                 "flex items-center justify-between rounded-md px-2 py-1.5 text-[11px]",
-                entry.playerId === leaderId ? "bg-amber-400/10 border border-amber-400/25" : "bg-white/[0.04]"
+                entry.playerId === leaderId ? "bg-[#ff7a45]/10 border border-[#ff7a45]/25" : "bg-white/[0.04]"
               )}
             >
               <div className="min-w-0">
@@ -62,7 +62,7 @@ export function RoundCompleteBanner({
               <span
                 className={cn(
                   "text-sm font-bold tabular-nums shrink-0 ml-2",
-                  entry.score >= 0 ? "text-sky-300" : "text-red-400"
+                  entry.score >= 0 ? "text-[#8fa7ff]" : "text-red-400"
                 )}
               >
                 {entry.score > 0 ? "+" : ""}

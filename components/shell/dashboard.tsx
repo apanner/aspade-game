@@ -4,21 +4,21 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
+  ArrowUpRight,
   History,
   Loader2,
   LogOut,
-  PlusCircle,
+  Plus,
   Trophy,
   Users,
   Bot,
-  Zap,
+  Spade,
   RefreshCw,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { MobileNav } from "@/components/shell/mobile-nav"
 import { ActiveGameCard } from "@/components/shell/active-game-card"
-import { AppLogo, AppWordmark } from "@/components/brand/app-logo"
+import { AppLogo } from "@/components/brand/app-logo"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useAuth } from "@/components/auth-provider"
 import { useToast } from "@/hooks/use-toast"
@@ -76,147 +76,178 @@ export function Dashboard() {
     navigateToGame(gameId)
   }
 
-  const handleSignOut = () => {
-    signOut()
-    router.push("/")
-  }
-
   if (loading || !user) {
     return (
-      <div className="felt-page flex min-h-[100dvh] items-center justify-center">
+      <div className="lobby-page flex min-h-[100dvh] items-center justify-center">
         <LoadingSpinner size="md" message="Loading lobby…" showMessage fullScreen={false} />
       </div>
     )
   }
 
   return (
-    <div className="felt-page min-h-[100dvh] pb-20">
-      <div className="mx-auto max-w-sm px-3 py-4 space-y-3">
-        <div className="glass-panel p-4 flex items-center gap-3">
-          <AppLogo size="md" />
-          <div className="min-w-0 flex-1">
-            <h1 className="text-lg font-display font-semibold flex items-center gap-1.5">
-              <AppWordmark className="text-lg" />
-              <span className="text-white/50 text-sm font-normal">Live</span>
-            </h1>
-            <p className="text-xs text-white/45 flex items-center gap-1.5 mt-0.5">
-              <span className="live-dot" />
-              {user.name}
-            </p>
+    <div className="lobby-page min-h-[100dvh] pb-[72px]">
+      <div className="lobby-mesh pointer-events-none" aria-hidden />
+      <div className="lobby-suit-pattern pointer-events-none" aria-hidden />
+      <div className="relative mx-auto max-w-[430px] px-4 pt-5 space-y-4">
+        <header className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="lobby-logo-mark">
+              <AppLogo size="sm" />
+            </div>
+            <div>
+              <p className="lobby-wordmark">ASAPDE</p>
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#9aa6bd]">
+                Private card club
+              </p>
+            </div>
           </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={handleSignOut} aria-label="Sign out">
+          <button
+            type="button"
+            onClick={() => {
+              signOut()
+              router.push("/")
+            }}
+            className="lobby-icon-btn"
+            aria-label="Sign out"
+          >
             <LogOut className="h-4 w-4" />
-          </Button>
-        </div>
+          </button>
+        </header>
 
         {liveGame && (
           <button
             type="button"
             onClick={() => handleResume(liveGame.gameId, liveGame.playerId)}
-            className="w-full text-left rounded-lg border border-sky-400/25 bg-sky-500/5 p-3 active:scale-[0.99] transition-transform"
+            className="lobby-resume-card w-full text-left"
           >
-            <div className="flex items-center justify-between gap-2 mb-1">
-              <span className="flex items-center gap-1.5 text-sky-300 font-semibold text-xs uppercase tracking-wide">
-                <Zap className="w-3.5 h-3.5" />
-                Resume
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#aebcff]">
+                Resume game
               </span>
-              <Badge variant="outline" className="text-[9px] h-5 border-sky-400/30 text-sky-300 px-1.5">
-                LIVE
-              </Badge>
+              <span className="lobby-live-badge">Live</span>
             </div>
-            <p className="font-medium text-sm truncate">{liveGame.title || liveGame.gameCode}</p>
-            <p className="text-[10px] text-white/40 mt-0.5">
-              R{liveGame.currentRound}/{liveGame.totalRounds}
+            <p className="mt-1 text-[15px] font-medium text-white truncate">
+              {liveGame.title || liveGame.gameCode}
+            </p>
+            <p className="mt-0.5 text-[12px] text-white/55">
+              Round {liveGame.currentRound}/{liveGame.totalRounds}
             </p>
           </button>
         )}
 
+        <section className="lobby-hero">
+          <div className="lobby-hero__orb" aria-hidden />
+          <Spade className="lobby-hero__suit" aria-hidden />
+          <div className="relative z-10">
+            <p className="lobby-kicker">Welcome back, {user.name}</p>
+            <h1 className="lobby-hero__title">
+              Your table
+              <br />
+              is ready.
+            </h1>
+            <p className="lobby-hero__copy">Thirteen rounds. Three rivals. One winner.</p>
+            <button
+              type="button"
+              onClick={handlePlayVsComputer}
+              disabled={quickPlayLoading}
+              className="lobby-cta"
+            >
+              {quickPlayLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Dealing cards
+                </>
+              ) : (
+                <>
+                  Play vs computer
+                  <ArrowUpRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
+          </div>
+        </section>
+
         {stats && (
-          <div className="grid grid-cols-4 gap-1.5">
+          <section className="lobby-stats" aria-label="Player statistics">
+            <div className="lobby-stat lobby-stat--identity">
+              <span className="lobby-stat__eyebrow">Player</span>
+              <span className="lobby-stat__name">{user.name}</span>
+            </div>
             {[
               { label: "Games", value: stats.totalGames },
-              { label: "Win%", value: `${stats.winRate}%` },
+              { label: "Win rate", value: `${stats.winRate}%` },
               { label: "Best", value: stats.bestScore },
-              { label: "Rank", value: stats.rank ? `#${stats.rank}` : "—" },
             ].map((item) => (
-              <div key={item.label} className="glass-panel p-2 text-center">
-                <p className="text-sm font-bold text-sky-300 tabular-nums">{item.value}</p>
-                <p className="text-[9px] text-white/40 mt-0.5">{item.label}</p>
+              <div key={item.label} className="lobby-stat">
+                <p className="lobby-stat__value">{item.value}</p>
+                <p className="lobby-stat__label">{item.label}</p>
               </div>
             ))}
-          </div>
+          </section>
         )}
 
-        <div className="space-y-2">
-          <Button
-            className="w-full h-10 text-sm font-semibold bg-sky-500 hover:bg-sky-400 text-slate-950 rounded-lg"
-            onClick={handlePlayVsComputer}
-            disabled={quickPlayLoading}
-          >
-            {quickPlayLoading ? (
-              <span className="flex items-center gap-2">
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Setting up table…
-              </span>
-            ) : (
-              <>
-                <Bot className="w-5 h-5 mr-2" />
-                Play vs Computer
-              </>
-            )}
-          </Button>
-          <Link href="/create-game" className="block no-underline">
-            <div className="h-10 rounded-lg glass-panel border border-white/[0.08] text-sm font-medium flex items-center justify-center gap-2 active:scale-[0.99] transition-transform">
-              <PlusCircle className="h-4 w-4 text-sky-300" />
-              Create Game
-            </div>
-          </Link>
-          <Link href="/join-game" className="block no-underline">
-            <div className="h-10 rounded-lg glass-panel border border-white/[0.08] text-sm font-medium flex items-center justify-center gap-2 active:scale-[0.99] transition-transform">
-              <Users className="h-4 w-4 text-white/50" />
-              Join Code
-            </div>
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          <Link href="/leaderboard" className="glass-panel p-3 flex flex-col items-center gap-1 no-underline text-inherit">
-            <Trophy className="h-5 w-5 text-amber-300/80" />
-            <span className="text-xs font-medium text-white/70">Leaderboard</span>
-          </Link>
-          <Link href="/history" className="glass-panel p-3 flex flex-col items-center gap-1 no-underline text-inherit">
-            <History className="h-5 w-5 text-white/45" />
-            <span className="text-xs font-medium text-white/70">History</span>
-          </Link>
-        </div>
-
-        <div className="glass-panel overflow-hidden">
-          <div className="px-3 py-2 border-b border-white/[0.06] flex items-center justify-between">
-            <h2 className="font-medium text-sm flex items-center gap-1.5 text-white/80">
-              <AppLogo size="xs" />
-              Tables
-            </h2>
-            <div className="flex items-center gap-2">
-              {activeGames.length > 0 && (
-                <Badge variant="outline" className="border-team-us/30 text-team-us">
-                  {activeGames.length}
-                </Badge>
-              )}
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => refresh()} aria-label="Refresh">
-                <RefreshCw className={cn("h-3.5 w-3.5", fetching && "animate-spin")} />
-              </Button>
-            </div>
+        <div className="flex items-center justify-between pt-1">
+          <div>
+            <p className="lobby-kicker text-[#ff7a45]">Choose your game</p>
+            <h2 className="text-[18px] font-semibold text-[#f6f1e8]">Club rooms</h2>
           </div>
+          <span className="text-[11px] text-[#7e899d]">4 ways to play</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2.5">
+          <Link href="/create-game" className="lobby-action-tile lobby-action-tile--blue no-underline">
+            <span className="lobby-action-tile__icon"><Plus /></span>
+            <span className="lobby-action-tile__title">Host table</span>
+            <span className="lobby-action-tile__hint">Invite your crew</span>
+            <ArrowUpRight className="lobby-action-tile__arrow" />
+          </Link>
+          <Link href="/join-game" className="lobby-action-tile lobby-action-tile--orange no-underline">
+            <span className="lobby-action-tile__icon"><Users /></span>
+            <span className="lobby-action-tile__title">Join table</span>
+            <span className="lobby-action-tile__hint">Use a room code</span>
+            <ArrowUpRight className="lobby-action-tile__arrow" />
+          </Link>
+          <Link href="/leaderboard" className="lobby-action-tile no-underline">
+            <span className="lobby-action-tile__icon"><Trophy /></span>
+            <span className="lobby-action-tile__title">Leaderboard</span>
+            <span className="lobby-action-tile__hint">See the top players</span>
+          </Link>
+          <Link href="/history" className="lobby-action-tile no-underline">
+            <span className="lobby-action-tile__icon"><History /></span>
+            <span className="lobby-action-tile__title">Match history</span>
+            <span className="lobby-action-tile__hint">Review past tables</span>
+          </Link>
+        </div>
+
+        <section className="lobby-section">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="lobby-kicker">In progress</p>
+              <h2 className="text-[16px] font-semibold text-[#f6f1e8]">Your tables</h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => refresh()}
+              className="lobby-icon-btn h-7 w-7"
+              aria-label="Refresh tables"
+            >
+              <RefreshCw className={cn("h-3.5 w-3.5", fetching && "animate-spin")} />
+            </button>
+          </div>
+
           {fetching && activeGames.length === 0 ? (
-            <div className="p-8 flex justify-center">
-              <LoadingSpinner size="sm" message="Finding tables…" showMessage fullScreen={false} />
+            <div className="py-8 flex justify-center">
+              <LoadingSpinner size="sm" message="Loading…" showMessage fullScreen={false} />
             </div>
           ) : activeGames.length === 0 ? (
-            <p className="p-6 text-center text-sm text-muted-foreground">
-              No active tables — start a game above
-            </p>
+            <div className="lobby-empty">
+              <div className="lobby-empty__icon">
+                <Bot className="h-5 w-5" />
+              </div>
+              <p className="text-[14px] font-semibold text-[#f6f1e8]">The room is quiet</p>
+              <p className="mt-1 text-[12px] text-[#8f9aad]">Start a match and cards will appear here.</p>
+            </div>
           ) : (
-            <div className="p-3 space-y-2">
+            <div className="space-y-2">
               {activeGames.map((game) => (
                 <ActiveGameCard
                   key={game.gameId}
@@ -230,7 +261,7 @@ export function Dashboard() {
               ))}
             </div>
           )}
-        </div>
+        </section>
       </div>
 
       <MobileNav />

@@ -16,8 +16,8 @@ export function MobileNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 border-t border-white/10 bg-[#0a0f1a]/95 backdrop-blur-lg pb-[env(safe-area-inset-bottom)]">
-      <div className="mx-auto flex max-w-sm items-stretch justify-around">
+    <nav className="fixed bottom-0 inset-x-0 z-50 border-t border-[#252c39] bg-[#0b0f17]/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
+      <div className="mx-auto flex max-w-[430px] items-stretch justify-around px-2">
         {NAV.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || (href === "/dashboard" && pathname === "/")
           return (
@@ -25,13 +25,13 @@ export function MobileNav() {
               key={href}
               href={href}
               className={cn(
-                "flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] font-medium transition-colors no-underline",
-                active ? "text-team-us" : "text-muted-foreground hover:text-white"
+                "relative flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold no-underline transition-colors",
+                active ? "text-[#ff7a45]" : "text-[#687386] hover:text-[#b6c0d0]"
               )}
             >
-              <Icon className={cn("h-5 w-5", active && "drop-shadow-[0_0_6px_rgba(0,229,255,0.6)]")} />
+              {active && <span className="absolute top-0 h-[2px] w-7 rounded-full bg-[#ff7a45]" />}
+              <Icon className="h-[18px] w-[18px]" strokeWidth={active ? 2.25 : 1.75} />
               {label}
-              {active && <span className="h-0.5 w-6 rounded-full bg-team-us mt-0.5" />}
             </Link>
           )
         })}

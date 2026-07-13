@@ -48,12 +48,12 @@ export function Seat({
       className={cn(
         "seat-card relative w-[68px] px-1 py-1 text-center transition-all duration-200",
         isSpeaking && "seat-card--speaking",
-        isRecentWinner && "ring-1 ring-amber-400/50",
-        isSelf && "border-sky-400/25",
-        !isIndividualMode && isPartner && !isSelf && "border-sky-400/15",
-        !isIndividualMode && !isPartner && !isSelf && "border-orange-400/15",
+        isRecentWinner && "ring-1 ring-[#ff7a45]/50",
+        isSelf && "border-[#8fa7ff]/25",
+        !isIndividualMode && isPartner && !isSelf && "border-[#8fa7ff]/15",
+        !isIndividualMode && !isPartner && !isSelf && "border-[#ff7a45]/15",
         isIndividualMode && !isSelf && "border-white/[0.08]",
-        isTurn && "border-amber-400/35",
+        isTurn && "border-[#ff7a45]/35",
         className
       )}
     >
@@ -62,15 +62,15 @@ export function Seat({
       <Avatar
         className={cn(
           "mx-auto my-0.5 h-6 w-6 border border-white/[0.08]",
-          isTurn && "ring-1 ring-amber-400/70",
-          isSpeaking && "ring-1 ring-sky-400/60"
+          isTurn && "ring-1 ring-[#ff7a45]/70",
+          isSpeaking && "ring-1 ring-[#8fa7ff]/60"
         )}
       >
         <AvatarFallback
           className={cn(
             "text-[9px] font-semibold",
             isSelf || (!isIndividualMode && isPartner)
-              ? "bg-sky-500/15 text-sky-300"
+              ? "bg-[#3155e7]/20 text-[#8fa7ff]"
               : "bg-white/[0.06] text-white/70"
           )}
         >
@@ -90,7 +90,7 @@ export function Seat({
       ) : (
         <p className="mt-0.5 text-[8px] text-white/50 tabular-nums leading-tight">
           {bid ?? "?"}·{books}
-          {score !== undefined && <span className="text-sky-300/80"> {score}</span>}
+          {score !== undefined && <span className="text-[#8fa7ff]/80"> {score}</span>}
         </p>
       )}
     </GlassPanel>

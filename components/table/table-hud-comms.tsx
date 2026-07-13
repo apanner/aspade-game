@@ -95,7 +95,7 @@ export function TableHudComms({ myPlayerId, players }: TableHudCommsProps) {
             <MicOff className="h-4 w-4" />
           )}
           {isJoined && participantCount > 0 && (
-            <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-team-us px-0.5 text-[8px] font-bold text-black">
+            <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#8fa7ff] px-0.5 text-[8px] font-bold text-black">
               {participantCount}
             </span>
           )}
@@ -110,7 +110,7 @@ export function TableHudComms({ myPlayerId, players }: TableHudCommsProps) {
         >
           <MessageSquare className="h-4 w-4" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-team-them px-0.5 text-[8px] font-bold text-white">
+            <span className="absolute -top-0.5 -right-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#ff7a45] px-0.5 text-[8px] font-bold text-white">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}

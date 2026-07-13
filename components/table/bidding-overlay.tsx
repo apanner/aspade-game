@@ -65,7 +65,7 @@ export function BiddingOverlay({
   if (!isIndividualMode && !isTeamLeader && !hasSubmittedBid) {
     return (
       <BidStatusStrip>
-        <ThinkingDots label="Captain bidding" className="text-[11px] text-team-us/70" />
+        <ThinkingDots label="Captain bidding" className="text-[11px] text-[#8fa7ff]/70" />
       </BidStatusStrip>
     )
   }
@@ -75,7 +75,7 @@ export function BiddingOverlay({
       <BidStatusStrip>
         <Check className="h-3.5 w-3.5 text-turn-active" strokeWidth={3} />
         <span className="text-[11px] font-medium uppercase tracking-wider text-white/50">Bid locked</span>
-        <span className="ml-1 text-xl font-bold tabular-nums text-team-us drop-shadow-[0_0_8px_rgba(0,229,255,0.45)]">
+        <span className="ml-1 text-xl font-bold tabular-nums text-[#8fa7ff] drop-shadow-[0_0_8px_rgba(143,167,255,0.45)]">
           {myBid}
         </span>
       </BidStatusStrip>
@@ -86,7 +86,7 @@ export function BiddingOverlay({
     return (
       <BidStatusStrip>
         <ThinkingDots label="Waiting" className="text-[11px] text-white/50" />
-        <span className="text-[11px] tabular-nums text-team-us/60">
+        <span className="text-[11px] tabular-nums text-[#8fa7ff]/60">
           {submittedCount}/{totalBidders}
         </span>
       </BidStatusStrip>
@@ -105,7 +105,7 @@ export function BiddingOverlay({
       </span>
 
       <div className="flex shrink-0 flex-col items-center justify-center px-1">
-        <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-team-us leading-none">
+        <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-[#8fa7ff] leading-none">
           Your
         </span>
         <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-turn-active leading-none">

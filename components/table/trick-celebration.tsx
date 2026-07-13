@@ -98,7 +98,7 @@ export function TrickCelebration({ data, mySeat, myPlayerId, onDone }: TrickCele
               ease: [0.22, 1, 0.36, 1],
             }}
           >
-            <div className={cn("rounded-md", isWinner && !sweeping && "ring-1 ring-amber-400/80 shadow-[0_0_12px_rgba(251,191,36,0.35)]")}>
+            <div className={cn("rounded-md", isWinner && !sweeping && "ring-1 ring-[#ff7a45]/80 shadow-[0_0_12px_rgba(255,122,69,0.35)]")}>
               <PlayingCard code={play.card} state={isWinner ? "winning" : "played"} size="sm" />
             </div>
           </motion.div>

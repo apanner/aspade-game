@@ -56,8 +56,8 @@ export const TrickZone = forwardRef<HTMLDivElement, TrickZoneProps>(function Tri
       />
       <div
         className={cn(
-          "absolute inset-[4px] flex flex-col items-center justify-center rounded-full bg-[#0c1219]/75 backdrop-blur-sm shadow-[inset_0_0_40px_rgba(0,0,0,0.55)] transition-all",
-          isDropTarget && "bg-[#0c1219]/85"
+          "absolute inset-[4px] flex flex-col items-center justify-center rounded-full bg-[#080b12]/80 backdrop-blur-sm shadow-[inset_0_0_40px_rgba(0,0,0,0.7)] transition-all",
+          isDropTarget && "bg-[#080b12]/90"
         )}
       >
         <span

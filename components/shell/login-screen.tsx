@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, Play, RefreshCw } from "lucide-react"
+import { Loader2, Play, RefreshCw, Spade } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AutocompleteInput } from "@/components/ui/autocomplete-input"
 import { TipsCarousel } from "@/components/shell/tips-carousel"
-import { AppLogo, AppWordmark } from "@/components/brand/app-logo"
+import { AppLogo } from "@/components/brand/app-logo"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/components/auth-provider"
 import { sessionStorage } from "@/lib/api"
@@ -119,52 +119,57 @@ export function LoginScreen() {
   }
 
   return (
-    <div className="felt-page flex min-h-[100dvh] flex-col items-center justify-center p-4">
-      <div className="w-full max-w-sm space-y-4">
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center gap-2">
+    <div className="lobby-page flex min-h-[100dvh] flex-col items-center justify-center p-4">
+      <div className="lobby-mesh pointer-events-none" aria-hidden />
+      <div className="relative w-full max-w-[360px] space-y-6">
+        <div className="text-center space-y-3">
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f6f1e8] shadow-[0_14px_35px_rgba(0,0,0,0.3)]">
             <AppLogo size="lg" />
-            <AppWordmark className="text-2xl" />
           </div>
-          <p className="text-sm text-white/50">Live Spades</p>
+          <div>
+            <h1 className="text-[22px] font-semibold tracking-tight text-white">ASAPDE</h1>
+            <p className="text-[13px] text-white/50 mt-0.5">Live Spades · 4 players</p>
+          </div>
         </div>
 
-        <div className="glass-panel p-4 space-y-4">
+        <div className="lobby-auth-card space-y-4">
           <div className="text-center">
-            <h2 className="text-base font-semibold font-display">Play as guest</h2>
-            <p className="text-xs text-white/45 mt-0.5">Enter your name</p>
+            <h2 className="text-[15px] font-medium text-white">Choose your name</h2>
+            <p className="text-[12px] text-white/45 mt-1">No account needed</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="space-y-1.5">
-              <Label htmlFor="name" className="text-xs text-white/50">Name</Label>
+              <Label htmlFor="name" className="text-[11px] text-white/50 uppercase tracking-wider">
+                Display name
+              </Label>
               <AutocompleteInput
                 value={name}
                 onChange={setName}
-                placeholder="Your name"
+                placeholder="e.g. AcePlayer"
                 disabled={loading}
                 getSuggestions={getPlayerSuggestions}
                 minChars={2}
-                className="h-10 bg-black/25 border-white/[0.08] text-center rounded-lg"
+                className="lobby-auth-input"
               />
             </div>
-            <Button
+            <button
               type="submit"
-              className="btn-pill-primary w-full h-10 text-sm"
               disabled={loading || !name.trim()}
+              className="lobby-auth-btn flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loading ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   {loadingText}
-                </span>
+                </>
               ) : (
-                <span className="flex items-center gap-2">
-                  <Play className="h-5 w-5" />
-                  Continue
-                </span>
+                <>
+                  <Play className="h-4 w-4" />
+                  Enter lobby
+                </>
               )}
-            </Button>
+            </button>
           </form>
 
           <TipsCarousel />
@@ -172,28 +177,27 @@ export function LoginScreen() {
       </div>
 
       <Dialog open={showResumeDialog} onOpenChange={setShowResumeDialog}>
-        <DialogContent className="glass-panel border-white/10 text-white max-w-md">
+        <DialogContent className="lobby-auth-card border-white/10 text-white max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 font-display">
-              <RefreshCw className="h-5 w-5 text-team-us" />
+            <DialogTitle className="flex items-center gap-2 text-[15px]">
+              <RefreshCw className="h-4 w-4 text-[#ff7a45]" />
               Welcome back, {name}
             </DialogTitle>
-            <DialogDescription>
-              You have a live game in progress. Resume it or go to the dashboard to start fresh.
+            <DialogDescription className="text-white/50">
+              You have a game in progress.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3 max-h-60 overflow-y-auto">
+          <div className="space-y-2 max-h-60 overflow-y-auto">
             {activeGames.map((game) => (
-              <div key={game.gameId} className="glass-panel p-3 border border-white/10">
+              <div key={game.gameId} className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="text-sm space-y-1">
-                    <p className="font-semibold">{game.title || game.gameCode}</p>
-                    <p className="text-muted-foreground">Host: {game.hostName}</p>
-                    <p className="text-muted-foreground">
-                      Round {game.currentRound}/{game.totalRounds} · {game.playerCount} players
+                  <div className="text-sm space-y-0.5 min-w-0">
+                    <p className="font-medium text-white truncate">{game.title || game.gameCode}</p>
+                    <p className="text-[12px] text-white/45">
+                      R{game.currentRound}/{game.totalRounds} · {game.playerCount} players
                     </p>
                   </div>
-                  <Button size="sm" className="btn-pill-primary shrink-0" onClick={() => handleResume(game)}>
+                  <Button size="sm" className="lobby-cta h-8 px-3 text-xs shrink-0" onClick={() => handleResume(game)}>
                     Resume
                   </Button>
                 </div>
@@ -201,8 +205,8 @@ export function LoginScreen() {
             ))}
           </div>
           <DialogFooter>
-            <Button variant="outline" className="border-white/10" onClick={handleGoDashboard}>
-              Go to Dashboard
+            <Button variant="outline" className="border-white/10 text-white/70" onClick={handleGoDashboard}>
+              Go to lobby
             </Button>
           </DialogFooter>
         </DialogContent>
