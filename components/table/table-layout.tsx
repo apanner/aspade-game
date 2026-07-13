@@ -24,7 +24,7 @@ export function TableLayout({ children, north, east, south, west, center, hud, h
           "pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
         )}
       >
-        <header className="relative shrink-0 border-b border-white/[0.06] bg-[var(--surface-ink)] px-2 py-1">
+        <header className="relative shrink-0 border-b border-[#1c2330] bg-[#080b12]/95 px-2 py-1.5 backdrop-blur-md">
           {hud}
           <div className="pointer-events-none absolute inset-x-0 top-full z-50 flex -translate-y-1 justify-center px-3">
             <MicPermissionFloater />
@@ -42,7 +42,7 @@ export function TableLayout({ children, north, east, south, west, center, hud, h
           <div className="flex shrink-0 justify-center pt-0.5 pb-1">{south}</div>
         </div>
 
-        <footer className="shrink-0 border-t border-white/[0.06] bg-[var(--surface-ink)] px-2 py-1.5">
+        <footer className="shrink-0 border-t border-[#1c2330] bg-[#080b12]/95 px-2 py-1.5 backdrop-blur-md">
           {hand}
         </footer>
         {children}

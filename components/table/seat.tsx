@@ -57,13 +57,13 @@ export function Seat({
         className
       )}
     >
-      <p className="text-[7px] font-semibold uppercase tracking-wider text-white/40">{label}</p>
+      <p className="text-[7px] font-bold uppercase tracking-[0.14em] text-[#5c6678]">{label}</p>
 
       <Avatar
         className={cn(
-          "mx-auto my-0.5 h-6 w-6 border border-white/[0.08]",
-          isTurn && "ring-1 ring-[#ff7a45]/70",
-          isSpeaking && "ring-1 ring-[#8fa7ff]/60"
+          "mx-auto my-0.5 h-6 w-6 border border-[#252c39]",
+          isTurn && "ring-2 ring-[#ff7a45]/60 ring-offset-1 ring-offset-[#080b12]",
+          isSpeaking && "ring-2 ring-[#8fa7ff]/50 ring-offset-1 ring-offset-[#080b12]"
         )}
       >
         <AvatarFallback
@@ -79,7 +79,7 @@ export function Seat({
       </Avatar>
 
       <div className="flex items-center justify-center gap-0.5 min-h-[12px]">
-        <p className="truncate text-[9px] font-medium text-white/90" title={name}>
+        <p className="truncate text-[9px] font-semibold text-[#f6f1e8]" title={name}>
           {displayName}
         </p>
         {isSpeaking && <VoiceWaveform active barCount={3} />}

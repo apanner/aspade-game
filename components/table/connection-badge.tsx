@@ -16,10 +16,10 @@ export function ConnectionBadge({ status, className }: ConnectionBadgeProps) {
   return (
     <div
       className={cn(
-        "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide backdrop-blur-sm",
-        isLive && "border-team-us/30 bg-team-us/10 text-team-us",
-        isConnecting && "border-amber-500/30 bg-amber-500/10 text-amber-300",
-        status === "disconnected" && "border-red-500/30 bg-red-500/10 text-red-300",
+        "flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider",
+        isLive && "border-[#3155e7]/40 bg-[#3155e7]/15 text-[#8fa7ff]",
+        isConnecting && "border-[#ff7a45]/35 bg-[#ff7a45]/10 text-[#ff9a6e]",
+        status === "disconnected" && "border-red-500/35 bg-red-500/10 text-red-300",
         className
       )}
       role="status"
@@ -27,14 +27,14 @@ export function ConnectionBadge({ status, className }: ConnectionBadgeProps) {
     >
       <span
         className={cn(
-          "h-2 w-2 shrink-0 rounded-full",
-          isLive && "live-dot bg-team-us",
-          isConnecting && "animate-pulse bg-amber-400",
+          "h-1.5 w-1.5 shrink-0 rounded-full",
+          isLive && "bg-[#8fa7ff] shadow-[0_0_6px_rgba(143,167,255,0.6)]",
+          isConnecting && "animate-pulse bg-[#ff7a45]",
           status === "disconnected" && "bg-red-500"
         )}
         aria-hidden
       />
-      {isLive ? "Live" : isConnecting ? "Syncing…" : "Offline"}
+      {isLive ? "Live" : isConnecting ? "Sync" : "Off"}
     </div>
   )
 }

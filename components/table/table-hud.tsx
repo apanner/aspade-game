@@ -5,6 +5,7 @@ import { ConnectionBadge, type ConnectionStatus } from "./connection-badge"
 import { RoundProgress } from "./round-progress"
 import { EndGameControl } from "@/components/shell/end-game-control"
 import { TableHudComms } from "@/components/table/table-hud-comms"
+import { cn } from "@/lib/utils"
 
 type TableHUDProps = {
   round: number
@@ -15,6 +16,7 @@ type TableHUDProps = {
   myRank?: number
   totalPlayers?: number
   spadesBroken?: boolean
+  spadesJustBroken?: boolean
   connectionStatus?: ConnectionStatus
   phase?: "bidding" | "playing"
   tricksInRound?: number
@@ -35,6 +37,7 @@ export function TableHUD({
   myRank,
   totalPlayers,
   spadesBroken,
+  spadesJustBroken = false,
   connectionStatus = "connected",
   phase = "playing",
   tricksInRound = 0,
@@ -50,32 +53,38 @@ export function TableHUD({
 
   return (
     <div className="shrink-0">
-      <div className="flex items-center justify-between gap-1.5">
+      <div className="table-hud-bar flex items-center justify-between gap-1.5">
         <ConnectionBadge status={connectionStatus} />
-        <div className="flex-1 min-w-0 rounded-lg border border-white/[0.07] bg-black/30 px-2 py-1 text-[10px] font-medium tabular-nums">
-          <span className="text-white/45">R{round}/{totalRounds}</span>
+        <div className="table-hud-score flex-1 min-w-0 px-2.5 py-1 text-[10px] font-semibold tabular-nums">
+          <span className="text-[#7e899d]">R{round}/{totalRounds}</span>
           {phase === "playing" && (
-            <span className="text-white/35 ml-1">· T{tricksInRound}/{cardsPerRound}</span>
+            <span className="text-[#5c6678] ml-1">· T{tricksInRound}/{cardsPerRound}</span>
           )}
-          <span className="mx-1.5 text-white/20">|</span>
+          <span className="mx-1.5 text-[#3d4657]">|</span>
           {isIndividualMode ? (
             <>
-              <span className={usLeading ? "text-[#8fa7ff]" : "text-[#8fa7ff]/80"}>{usScore}</span>
+              <span className={usLeading ? "text-[#8fa7ff]" : "text-[#8fa7ff]/75"}>{usScore}</span>
               {myRank != null && totalPlayers != null && (
-                <span className="text-white/40 ml-1">#{myRank}</span>
+                <span className="text-[#5c6678] ml-1">#{myRank}</span>
               )}
             </>
           ) : (
             <>
-              <span className={usLeading ? "text-[#8fa7ff]" : "text-[#8fa7ff]/75"}>{usScore}</span>
-              <span className="text-white/25 mx-1">–</span>
-              <span className={themLeading ? "text-[#ff7a45]" : "text-[#ff7a45]/75"}>{themScore}</span>
+              <span className={usLeading ? "text-[#8fa7ff]" : "text-[#8fa7ff]/70"}>{usScore}</span>
+              <span className="text-[#3d4657] mx-1">–</span>
+              <span className={themLeading ? "text-[#ff7a45]" : "text-[#ff7a45]/70"}>{themScore}</span>
             </>
           )}
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {spadesBroken && (
-            <span className="rounded px-1.5 py-0.5 text-[9px] font-bold text-white/90 border border-white/20 bg-white/10">
+            <span
+              className={cn(
+                "table-spades-badge",
+                spadesJustBroken && "table-spades-badge--flash"
+              )}
+              title="Spades are broken"
+            >
               ♠
             </span>
           )}

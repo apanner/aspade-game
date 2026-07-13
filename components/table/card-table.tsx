@@ -412,14 +412,13 @@ export function CardTable({
   useEffect(() => {
     if (spadesBroken && !prevSpadesBrokenRef.current) {
       setShowSpadesBanner(true)
-      toast({ title: "♠ Spades are broken!", description: "Trump is now in play" })
-      const duration = prefersReducedMotion ? 800 : 2500
+      const duration = prefersReducedMotion ? 800 : 2000
       const timer = window.setTimeout(() => setShowSpadesBanner(false), duration)
       prevSpadesBrokenRef.current = spadesBroken
       return () => window.clearTimeout(timer)
     }
     prevSpadesBrokenRef.current = spadesBroken
-  }, [spadesBroken, toast, prefersReducedMotion])
+  }, [spadesBroken, prefersReducedMotion])
 
   const seatMap = useMemo(() => {
     const map: Record<string, "north" | "east" | "south" | "west"> = {}
@@ -572,6 +571,7 @@ export function CardTable({
           myRank={myRank}
           totalPlayers={totalPlayers}
           spadesBroken={spadesBroken}
+          spadesJustBroken={showSpadesBanner}
           connectionStatus={connectionStatus}
           phase={phase}
           tricksInRound={tricksInRound}
@@ -608,6 +608,7 @@ export function CardTable({
                 celebrating={showTrickCelebration}
                 leaderLabel={trickLeaderLabel}
                 freshPlayKeys={freshPlayKeys}
+                spadesFlash={showSpadesBanner}
               />
               {showTrickCelebration && (
                 <TrickCelebration
@@ -640,43 +641,24 @@ export function CardTable({
             </div>
           )}
           <AnimatePresence>
-            {isComputerBidding && (
+            {(isComputerBidding || isComputerThinking || showRoundBanner) && (
               <TableNotice
-                key="bot-bidding"
-                message={`${turnPlayer?.name?.split(" ")[0]} bidding…`}
-                className="absolute inset-x-0 top-1 z-40 mx-auto"
+                key={
+                  isComputerBidding
+                    ? "bot-bidding"
+                    : isComputerThinking
+                      ? "bot-thinking"
+                      : `round-${round}`
+                }
+                message={
+                  isComputerBidding
+                    ? `${turnPlayer?.name?.split(" ")[0]} bidding…`
+                    : isComputerThinking
+                      ? `${turnPlayer?.name?.split(" ")[0]} playing…`
+                      : `Round ${round} · ${cardsPerRound} card${cardsPerRound === 1 ? "" : "s"}`
+                }
+                className="table-center-notice"
               />
-            )}
-            {isComputerThinking && (
-              <TableNotice
-                key="bot-thinking"
-                message={`${turnPlayer?.name?.split(" ")[0]} playing…`}
-                className="absolute inset-x-0 top-1 z-40 mx-auto"
-              />
-            )}
-            {showRoundBanner && (
-              <motion.div
-                key={`round-banner-${round}`}
-                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                className="pointer-events-none absolute inset-x-0 top-1 z-50 mx-auto w-fit status-chip"
-                role="status"
-              >
-                Round {round} · {cardsPerRound} card{cardsPerRound === 1 ? "" : "s"}
-              </motion.div>
-            )}
-            {showSpadesBanner && (
-              <motion.div
-                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="pointer-events-none absolute inset-x-0 top-1 z-50 mx-auto w-fit status-chip text-[#8fa7ff] border-[#3155e7]/30"
-                role="status"
-                aria-live="assertive"
-              >
-                ♠ Broken
-              </motion.div>
             )}
           </AnimatePresence>
         </div>
