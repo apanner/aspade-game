@@ -28,44 +28,41 @@ export function RoundCompleteBanner({
       initial={prefersReducedMotion ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="absolute inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+      className="absolute inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-[2px]"
       onClick={onDismiss}
       role="dialog"
       aria-label={`Round ${round} complete`}
     >
       <motion.div
-        initial={prefersReducedMotion ? false : { scale: 0.92, y: 12 }}
+        initial={prefersReducedMotion ? false : { scale: 0.96, y: 8 }}
         animate={{ scale: 1, y: 0 }}
-        className="mx-4 w-full max-w-[280px] rounded-2xl border border-white/15 bg-[var(--surface-ink)] p-4 shadow-2xl"
+        className="mx-3 w-full max-w-[240px] rounded-xl border border-white/10 bg-[var(--surface-ink)] p-3 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <p className="text-center text-[10px] font-semibold uppercase tracking-widest text-win-gold">
-          Round {round} complete
+        <p className="text-center text-[9px] font-semibold uppercase tracking-widest text-amber-300/90">
+          Round {round}
         </p>
-        <ul className="mt-3 space-y-2">
+        <ul className="mt-2 space-y-1">
           {sorted.map((entry, index) => (
             <li
               key={entry.playerId}
               className={cn(
-                "flex items-center justify-between rounded-lg px-3 py-2",
-                entry.playerId === leaderId ? "bg-win-gold/12 border border-win-gold/35" : "bg-white/8"
+                "flex items-center justify-between rounded-md px-2 py-1.5 text-[11px]",
+                entry.playerId === leaderId ? "bg-amber-400/10 border border-amber-400/25" : "bg-white/[0.04]"
               )}
             >
-              <div>
-                <p className="text-xs font-semibold text-white">
+              <div className="min-w-0">
+                <p className="font-medium text-white/90 truncate">
                   {index + 1}. {entry.name}
-                  {entry.playerId === leaderId && (
-                    <span className="ml-1 text-[9px] text-win-gold">LEAD</span>
-                  )}
                 </p>
-                <p className="text-[10px] text-white/65">
-                  Bid {entry.bid} · Won {entry.tricks}
+                <p className="text-[9px] text-white/45">
+                  {entry.bid} bid · {entry.tricks} won
                 </p>
               </div>
               <span
                 className={cn(
-                  "text-lg font-bold tabular-nums",
-                  entry.score >= 0 ? "text-team-us" : "text-red-400"
+                  "text-sm font-bold tabular-nums shrink-0 ml-2",
+                  entry.score >= 0 ? "text-sky-300" : "text-red-400"
                 )}
               >
                 {entry.score > 0 ? "+" : ""}
@@ -74,8 +71,8 @@ export function RoundCompleteBanner({
             </li>
           ))}
         </ul>
-        <p className="mt-3 text-center text-[10px] text-white/60">
-          {isFinalRound ? "Final scores loading…" : "Next round dealing…"}
+        <p className="mt-2 text-center text-[9px] text-white/40">
+          {isFinalRound ? "Final scores…" : "Next round…"}
         </p>
       </motion.div>
     </motion.div>

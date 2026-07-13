@@ -44,7 +44,7 @@ export const TrickZone = forwardRef<HTMLDivElement, TrickZoneProps>(function Tri
       ref={ref}
       data-trick-drop-zone
       className={cn(
-        "relative mx-auto aspect-square w-full max-w-[220px]",
+        "relative mx-auto aspect-square w-full max-w-[176px]",
         isDropTarget && "ring-2 ring-turn-active/60 ring-offset-2 ring-offset-transparent rounded-full"
       )}
     >

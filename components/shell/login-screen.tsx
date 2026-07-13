@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
-import { Loader2, Play, Users, RefreshCw } from "lucide-react"
+import { Loader2, Play, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -121,52 +120,37 @@ export function LoginScreen() {
 
   return (
     <div className="felt-page flex min-h-[100dvh] flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center space-y-4"
-        >
-          <div className="inline-flex items-center justify-center p-5 rounded-3xl bg-gradient-to-br from-team-us/15 to-cyan-500/10 border border-team-us/25 shadow-[0_0_40px_rgba(0,229,255,0.15)]">
-            <AppLogo size="xl" />
+      <div className="w-full max-w-sm space-y-4">
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center justify-center gap-2">
+            <AppLogo size="lg" />
+            <AppWordmark className="text-2xl" />
           </div>
-          <h1 className="text-4xl font-bold font-display">
-            <AppWordmark className="text-4xl" />
-          </h1>
-          <p className="text-muted-foreground">Live Spades at the card table</p>
-        </motion.div>
+          <p className="text-sm text-white/50">Live Spades</p>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="glass-panel p-6 shadow-2xl glow-us space-y-5"
-        >
-          <div className="text-center space-y-1">
-            <h2 className="text-xl font-semibold font-display flex items-center justify-center gap-2">
-              <Users className="h-5 w-5 text-team-us" />
-              Welcome, Champion
-            </h2>
-            <p className="text-sm text-muted-foreground">Enter your name to play</p>
+        <div className="glass-panel p-4 space-y-4">
+          <div className="text-center">
+            <h2 className="text-base font-semibold font-display">Play as guest</h2>
+            <p className="text-xs text-white/45 mt-0.5">Enter your name</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="name">Your name</Label>
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="name" className="text-xs text-white/50">Name</Label>
               <AutocompleteInput
                 value={name}
                 onChange={setName}
-                placeholder="Enter your name"
+                placeholder="Your name"
                 disabled={loading}
                 getSuggestions={getPlayerSuggestions}
                 minChars={2}
-                className="h-12 bg-black/30 border-white/10 text-center text-lg rounded-full"
+                className="h-10 bg-black/25 border-white/[0.08] text-center rounded-lg"
               />
             </div>
             <Button
               type="submit"
-              className="btn-pill-primary w-full h-12 text-base"
+              className="btn-pill-primary w-full h-10 text-sm"
               disabled={loading || !name.trim()}
             >
               {loading ? (
@@ -184,7 +168,7 @@ export function LoginScreen() {
           </form>
 
           <TipsCarousel />
-        </motion.div>
+        </div>
       </div>
 
       <Dialog open={showResumeDialog} onOpenChange={setShowResumeDialog}>

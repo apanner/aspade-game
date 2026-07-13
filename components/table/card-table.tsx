@@ -520,7 +520,7 @@ export function CardTable({
 
   const renderSeat = (pos: "north" | "east" | "south" | "west", fallbackLabel: string) => {
     const p = byPosition[pos]
-    if (!p) return <div className="h-[88px] w-[84px]" />
+    if (!p) return <div className="h-[72px] w-[68px]" />
     const isTurn = currentTurnId === p.id
     const showBidding = isBidding && isTurn && p.bid === undefined
     const label =
@@ -530,13 +530,10 @@ export function CardTable({
       isSelf && ((canPlayNow && !isBidding) || (isMyTurnToBid && isBidding))
     const isRecentWinner = (showTrickCelebration && trickCelebration?.winnerId === p.id) || nextLeaderId === p.id
     return (
-      <div className="flex w-[84px] flex-col items-center gap-0.5">
+      <div className="flex w-[68px] flex-col items-center gap-0.5">
         {showUserTurnNotice && (
           <SeatTurnNotice
-            message={
-              isMyTurnToBid && isBidding ? "Your turn to bid" : "Your turn — play"
-            }
-            variant={isBidding ? "bid" : "play"}
+            message={isMyTurnToBid && isBidding ? "Bid" : "Play"}
           />
         )}
         {(isTurn && !isBidding) || (isMyTurnToBid && p.id === myPlayerId) ? (
@@ -602,7 +599,7 @@ export function CardTable({
               cardsPerRound={cardsPerRound}
             />
           ) : (
-            <div className="relative mx-auto w-full max-w-[220px]">
+            <div className="relative mx-auto w-full max-w-[176px]">
               <TrickZone
                 ref={trickZoneRef}
                 plays={displayTrickPlays}
@@ -646,60 +643,39 @@ export function CardTable({
             {isComputerBidding && (
               <TableNotice
                 key="bot-bidding"
-                message={`${turnPlayer?.name} is bidding…`}
-                className="absolute inset-x-0 -top-12 z-40 mx-auto"
+                message={`${turnPlayer?.name?.split(" ")[0]} bidding…`}
+                className="absolute inset-x-0 top-1 z-40 mx-auto"
               />
             )}
             {isComputerThinking && (
               <TableNotice
                 key="bot-thinking"
-                message={`${turnPlayer?.name} is playing…`}
-                className="absolute inset-x-0 -top-12 z-40 mx-auto"
+                message={`${turnPlayer?.name?.split(" ")[0]} playing…`}
+                className="absolute inset-x-0 top-1 z-40 mx-auto"
               />
             )}
             {showRoundBanner && (
               <motion.div
                 key={`round-banner-${round}`}
-                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -40, scale: 0.92 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={prefersReducedMotion ? reducedMotionProps.transition : { type: "spring", stiffness: 300, damping: 24 }}
-                className={cn(
-                  "pointer-events-none absolute inset-x-0 -top-16 z-50 mx-auto w-fit",
-                  "table-notice-pill table-notice-pill--round"
-                )}
+                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                className="pointer-events-none absolute inset-x-0 top-1 z-50 mx-auto w-fit status-chip"
                 role="status"
               >
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-win-gold">
-                  Round {round}
-                </p>
-                <p className="text-sm font-bold text-white">
-                  {cardsPerRound} card{cardsPerRound === 1 ? "" : "s"} dealt each
-                </p>
+                Round {round} · {cardsPerRound} card{cardsPerRound === 1 ? "" : "s"}
               </motion.div>
             )}
             {showSpadesBanner && (
               <motion.div
-                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -48, scale: 0.9 }}
-                animate={
-                  prefersReducedMotion
-                    ? { opacity: 1 }
-                    : { opacity: [0, 1, 1, 0.85], y: 0, scale: [0.9, 1.05, 1, 1] }
-                }
-                exit={{ opacity: 0, y: -24 }}
-                transition={
-                  prefersReducedMotion
-                    ? reducedMotionProps.transition
-                    : { duration: 2.2, times: [0, 0.15, 0.7, 1], ease: "easeOut" }
-                }
-                className={cn(
-                  "pointer-events-none absolute inset-x-0 -top-14 z-50 mx-auto w-fit",
-                  "table-notice-pill table-notice-pill--spades px-5 py-2.5"
-                )}
+                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="pointer-events-none absolute inset-x-0 top-1 z-50 mx-auto w-fit status-chip text-violet-200 border-violet-400/30"
                 role="status"
                 aria-live="assertive"
               >
-                ♠ Spades are broken!
+                ♠ Broken
               </motion.div>
             )}
           </AnimatePresence>
@@ -709,7 +685,7 @@ export function CardTable({
         <div className="relative flex flex-col">
           <div className="px-2 pt-1.5">
             {!isBidding && canPlayNow && legalCards && legalCards.length > 0 && (
-              <p className="mb-1 text-center text-[9px] uppercase tracking-widest text-win-gold font-semibold">
+              <p className="mb-0.5 text-center text-[8px] uppercase tracking-widest text-amber-300/90 font-semibold">
                 {displayTrickPlays.length === 0 && lastCompletedTrick?.winnerId === myPlayerId
                   ? "You won — play your card"
                   : leadSuit
@@ -718,14 +694,14 @@ export function CardTable({
               </p>
             )}
             {!isBidding && hasPlayedThisTrick && (
-              <p className="mb-1 text-center text-[9px] uppercase tracking-widest text-white/70">
+              <p className="mb-0.5 text-center text-[8px] uppercase tracking-widest text-white/50">
                 {isMyTurn && !trickPlays.some((p) => p.playerId === myPlayerId)
                   ? "Syncing your play…"
                   : "Waiting for others…"}
               </p>
             )}
             {!isBidding && !isMyTurn && !hasPlayedThisTrick && turnPlayer && displayTrickPlays.length > 0 && (
-              <p className="mb-1 text-center text-[9px] uppercase tracking-widest text-white/70">
+              <p className="mb-0.5 text-center text-[8px] uppercase tracking-widest text-white/50">
                 {turnPlayer.name}&apos;s turn
               </p>
             )}

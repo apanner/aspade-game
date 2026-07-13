@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { motion, useReducedMotion } from "framer-motion"
 import { PlayingCard } from "./playing-card"
+import { WinnerChip } from "./winner-chip"
 import { getSeatPosition } from "./card-utils"
 import {
   TRICK_GAP_BEFORE_NEXT_MS,
@@ -20,17 +21,17 @@ export type TrickCelebrationData = {
 }
 
 const POSITION_CLASS: Record<string, string> = {
-  north: "top-1 left-1/2 -translate-x-1/2",
-  east: "right-1 top-1/2 -translate-y-1/2",
-  south: "bottom-1 left-1/2 -translate-x-1/2",
-  west: "left-1 top-1/2 -translate-y-1/2",
+  north: "top-0 left-1/2 -translate-x-1/2 -translate-y-0.5",
+  east: "right-0 top-1/2 -translate-y-1/2 translate-x-0.5",
+  south: "bottom-0 left-1/2 -translate-x-1/2 translate-y-0.5",
+  west: "left-0 top-1/2 -translate-y-1/2 -translate-x-0.5",
 }
 
 const SEAT_FLY: Record<string, { x: number; y: number }> = {
-  south: { x: 0, y: 140 },
-  north: { x: 0, y: -140 },
-  east: { x: 140, y: 0 },
-  west: { x: -140, y: 0 },
+  south: { x: 0, y: 96 },
+  north: { x: 0, y: -96 },
+  east: { x: 96, y: 0 },
+  west: { x: -96, y: 0 },
 }
 
 type TrickCelebrationProps = {
@@ -67,32 +68,16 @@ export function TrickCelebration({ data, mySeat, myPlayerId, onDone }: TrickCele
 
   if (!data) return null
 
-  const winnerPos = getSeatPosition(data.winnerSeat, mySeat)
-  const fly = SEAT_FLY[winnerPos]
+  const fly = SEAT_FLY[getSeatPosition(data.winnerSeat, mySeat)]
   const isYou = data.winnerId === myPlayerId
-  const winnerLabel = isYou ? "You" : data.winnerName.split(" ")[0]
+  const winnerLabel = isYou ? "You win" : `${data.winnerName.split(" ")[0]} wins`
   const sweeping = phase === "sweep" && !prefersReducedMotion
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-30">
-      <motion.div
-        initial={{ opacity: 0, y: 10, scale: 0.94 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0 }}
-        className={cn(
-          "absolute inset-x-0 -top-14 mx-auto w-fit rounded-2xl px-5 py-3",
-          "table-notice-pill table-notice-pill--round border-2"
-        )}
-      >
-        <p className="text-center text-[10px] font-bold uppercase tracking-[0.2em] text-win-gold">
-          Trick {data.trickIndex + 1} complete
-        </p>
-        <p className="text-center text-base font-bold text-white mt-0.5">
-          <span className="text-win-gold">{winnerLabel}</span>
-          {isYou ? " win!" : " wins"}
-        </p>
-        <p className="text-center text-[10px] text-white/70 mt-0.5">Books +1</p>
-      </motion.div>
+    <div className="pointer-events-none absolute inset-0 z-20">
+      <div className="absolute inset-0 flex items-center justify-center">
+        <WinnerChip label={winnerLabel} sublabel={`Trick ${data.trickIndex + 1}`} />
+      </div>
 
       {data.plays.map((play) => {
         const pos = getSeatPosition(play.seat, mySeat)
@@ -105,30 +90,16 @@ export function TrickCelebration({ data, mySeat, myPlayerId, onDone }: TrickCele
             initial={{ opacity: 1, scale: 1, x: 0, y: 0 }}
             animate={
               sweeping
-                ? { x: fly.x, y: fly.y, opacity: 0, scale: 0.4 }
-                : {
-                    x: 0,
-                    y: 0,
-                    opacity: 1,
-                    scale: isWinner ? [1, 1.08, 1.05] : 1,
-                  }
+                ? { x: fly.x, y: fly.y, opacity: 0, scale: 0.42 }
+                : { x: 0, y: 0, opacity: 1, scale: isWinner ? 1.04 : 1 }
             }
             transition={{
-              duration: sweeping ? TRICK_SWEEP_MS / 1000 : 0.5,
+              duration: sweeping ? TRICK_SWEEP_MS / 1000 : 0.45,
               ease: [0.22, 1, 0.36, 1],
             }}
           >
-            <div
-              className={cn(
-                "rounded-lg transition-shadow duration-300",
-                isWinner && !sweeping && "shadow-[0_0_28px_rgba(250,204,21,0.65)] ring-2 ring-win-gold/70"
-              )}
-            >
-              <PlayingCard
-                code={play.card}
-                state={isWinner ? "winning" : "played"}
-                size="sm"
-              />
+            <div className={cn("rounded-md", isWinner && !sweeping && "ring-1 ring-amber-400/80 shadow-[0_0_12px_rgba(251,191,36,0.35)]")}>
+              <PlayingCard code={play.card} state={isWinner ? "winning" : "played"} size="sm" />
             </div>
           </motion.div>
         )

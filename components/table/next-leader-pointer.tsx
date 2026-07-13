@@ -11,29 +11,25 @@ type NextLeaderPointerProps = {
 }
 
 const POINTER_CLASS: Record<string, string> = {
-  north: "top-0 left-1/2 -translate-x-1/2 -translate-y-full",
-  east: "right-0 top-1/2 translate-x-full -translate-y-1/2",
-  south: "bottom-0 left-1/2 -translate-x-1/2 translate-y-full",
-  west: "left-0 top-1/2 -translate-x-full -translate-y-1/2",
+  north: "top-1 left-1/2 -translate-x-1/2",
+  east: "right-1 top-1/2 -translate-y-1/2",
+  south: "bottom-1 left-1/2 -translate-x-1/2",
+  west: "left-1 top-1/2 -translate-y-1/2",
 }
 
 export function NextLeaderPointer({ leaderName, leaderSeat, mySeat }: NextLeaderPointerProps) {
   const prefersReducedMotion = useReducedMotion()
   const pos = getSeatPosition(leaderSeat, mySeat)
-  const pointerClass = POINTER_CLASS[pos]
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className={cn("pointer-events-none absolute z-20", pointerClass)}
+      className={cn("pointer-events-none absolute z-10", POINTER_CLASS[pos])}
     >
-      <div className="table-notice-pill table-notice-pill--info rounded-lg px-3 py-1.5 text-center">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-white">
-          {leaderName} leads next
-        </p>
-        <p className="text-[9px] text-white/65 mt-0.5">New trick starting</p>
+      <div className={cn("status-chip text-[8px] py-0.5 px-2", !prefersReducedMotion && "animate-pulse")}>
+        {leaderName} leads
       </div>
     </motion.div>
   )

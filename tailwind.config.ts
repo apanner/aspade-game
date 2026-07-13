@@ -11,7 +11,7 @@ const config: Config = {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: "1rem",
       screens: {
         "2xl": "1400px",
       },
@@ -55,11 +55,11 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        felt: { DEFAULT: "#0b5e47", mid: "#084a38", dark: "#062a20" },
-        "team-us": "#5ed9ff",
-        "team-them": "#ff8a4c",
-        "turn-active": "#ffce21",
-        "win-gold": "#ffce21",
+        felt: { DEFAULT: "#0c3d32", mid: "#0a3229", dark: "#071f1a" },
+        "team-us": "#7dd3fc",
+        "team-them": "#fb923c",
+        "turn-active": "#fbbf24",
+        "win-gold": "#fbbf24",
       },
       borderRadius: {
         lg: "var(--radius)",

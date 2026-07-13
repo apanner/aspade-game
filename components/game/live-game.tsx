@@ -77,14 +77,9 @@ export function LiveGame({ gameId }: LiveGameProps) {
       if (!winner) return
 
       if (lastTrick.winnerId === playerId) {
-        window.setTimeout(() => {
-          toast({ title: "You won the trick! 🎉", description: "Books +1" })
-        }, 2800)
-      } else {
-        window.setTimeout(() => {
-          toast({ title: `${winner.name} wins the trick`, description: `${winner.name} takes the books` })
-        }, 2800)
+        return
       }
+      // Subtle — winner chip on table is the primary feedback
     },
     [toast]
   )
