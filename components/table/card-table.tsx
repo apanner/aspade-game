@@ -179,6 +179,12 @@ export function CardTable({
     [trickPlaysKey, optimisticPlay, mySeat]
   )
 
+  const showTrickCelebration = !!trickCelebration
+  const hideLiveTrick = showTrickCelebration || trickBreather
+  const displayTrickPlays = hideLiveTrick
+    ? EMPTY_TRICK_PLAYS
+    : currentTrickPlays.filter((p) => playKey(p) !== flyHiddenPlayKey)
+
   useEffect(() => {
     if (trickPlays.length === 4) {
       fullTrickSnapshotRef.current = sortTrickPlaysBySeat(
@@ -213,11 +219,6 @@ export function CardTable({
     return () => window.clearTimeout(timer)
   }, [trickPlaysKey, myPlayerId, trickPlays])
 
-  const showTrickCelebration = !!trickCelebration
-  const hideLiveTrick = showTrickCelebration || trickBreather
-  const displayTrickPlays = hideLiveTrick
-    ? EMPTY_TRICK_PLAYS
-    : currentTrickPlays.filter((p) => playKey(p) !== flyHiddenPlayKey)
   const isMyTurn = currentTurnId === myPlayerId
   const serverHasMyPlay = trickPlays.some((p) => p.playerId === myPlayerId)
   const hasPlayedThisTrick =
