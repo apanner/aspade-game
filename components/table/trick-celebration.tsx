@@ -4,6 +4,11 @@ import { useEffect, useState } from "react"
 import { motion, useReducedMotion } from "framer-motion"
 import { PlayingCard } from "./playing-card"
 import { getSeatPosition } from "./card-utils"
+import {
+  TRICK_GAP_BEFORE_NEXT_MS,
+  TRICK_SWEEP_MS,
+  TRICK_WINNER_REVEAL_MS,
+} from "@/lib/trick-pacing"
 import { cn } from "@/lib/utils"
 
 export type TrickCelebrationData = {
@@ -28,11 +33,6 @@ const SEAT_FLY: Record<string, { x: number; y: number }> = {
   west: { x: -140, y: 0 },
 }
 
-/** Hold all four cards visible so players can read the trick before sweep. */
-const REVEAL_MS = 2600
-const SWEEP_MS = 900
-const TOTAL_MS = REVEAL_MS + SWEEP_MS
-
 type TrickCelebrationProps = {
   data: TrickCelebrationData | null
   mySeat: number
@@ -50,12 +50,15 @@ export function TrickCelebration({ data, mySeat, myPlayerId, onDone }: TrickCele
       return
     }
     if (prefersReducedMotion) {
-      const t = window.setTimeout(() => onDone?.(), 700)
+      const t = window.setTimeout(() => onDone?.(), TRICK_GAP_BEFORE_NEXT_MS)
       return () => window.clearTimeout(t)
     }
     setPhase("reveal")
-    const sweepTimer = window.setTimeout(() => setPhase("sweep"), REVEAL_MS)
-    const doneTimer = window.setTimeout(() => onDone?.(), TOTAL_MS)
+    const sweepTimer = window.setTimeout(() => setPhase("sweep"), TRICK_WINNER_REVEAL_MS)
+    const doneTimer = window.setTimeout(
+      () => onDone?.(),
+      TRICK_WINNER_REVEAL_MS + TRICK_SWEEP_MS
+    )
     return () => {
       window.clearTimeout(sweepTimer)
       window.clearTimeout(doneTimer)
@@ -112,7 +115,7 @@ export function TrickCelebration({ data, mySeat, myPlayerId, onDone }: TrickCele
                   }
             }
             transition={{
-              duration: sweeping ? SWEEP_MS / 1000 : 0.5,
+              duration: sweeping ? TRICK_SWEEP_MS / 1000 : 0.5,
               ease: [0.22, 1, 0.36, 1],
             }}
           >

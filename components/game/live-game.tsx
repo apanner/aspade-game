@@ -78,11 +78,11 @@ export function LiveGame({ gameId }: LiveGameProps) {
       if (lastTrick.winnerId === playerId) {
         window.setTimeout(() => {
           toast({ title: "You won the trick! 🎉", description: "Books +1" })
-        }, 1200)
+        }, 2800)
       } else {
         window.setTimeout(() => {
           toast({ title: `${winner.name} wins the trick`, description: `${winner.name} takes the books` })
-        }, 1200)
+        }, 2800)
       }
     },
     [toast]
