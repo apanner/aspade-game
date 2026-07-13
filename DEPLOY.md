@@ -29,10 +29,14 @@ Required vars (see `.env.local`):
 
 Optional (Realtime instant sync + voice signaling):
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_SUPABASE_URL` — **required for live voice**
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — **required for live voice**
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `CRON_SECRET` — random string; Vercel Cron sends `Authorization: Bearer <CRON_SECRET>` to `/api/supabase/ping`
+- `NEXT_PUBLIC_TURN_URLS` — optional comma-separated TURN URLs (phones / hard NAT)
+- `NEXT_PUBLIC_TURN_USERNAME` / `NEXT_PUBLIC_TURN_CREDENTIAL` — TURN auth
+
+Voice chat uses **Supabase Realtime** (broadcast + presence) for WebRTC signaling, then peer-to-peer audio. In Supabase Dashboard → Project Settings → API, confirm Realtime is enabled.
 
 ## Supabase keepalive (prevents free-tier pause)
 

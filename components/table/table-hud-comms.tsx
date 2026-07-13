@@ -7,6 +7,7 @@ import {
   MessageSquare,
   Mic,
   MicOff,
+  WifiOff,
 } from "lucide-react"
 import { useGameVoice } from "@/components/voice/game-voice-provider"
 import { useGameChat } from "@/components/chat/game-chat-provider"
@@ -26,6 +27,7 @@ export function TableHudComms({ myPlayerId, players }: TableHudCommsProps) {
     isConnecting,
     isMicOn,
     participantCount,
+    signalingStatus,
     joinVoice,
     toggleMic,
     isRequestingMicPermission,
@@ -35,9 +37,7 @@ export function TableHudComms({ myPlayerId, players }: TableHudCommsProps) {
   const [chatOpen, setChatOpen] = useState(false)
 
   useEffect(() => {
-    if (openDmWith) {
-      setChatOpen(true)
-    }
+    if (openDmWith) setChatOpen(true)
   }, [openDmWith])
 
   if (!isSupported) {
@@ -47,22 +47,37 @@ export function TableHudComms({ myPlayerId, players }: TableHudCommsProps) {
         className="table-hud-icon-btn opacity-40"
         disabled
         aria-label="Voice not supported"
-        title="Voice not supported"
+        title="Voice not supported on this browser"
       >
         <Headphones className="h-4 w-4" />
       </button>
     )
   }
 
+  const signalingBlocked =
+    signalingStatus === "unavailable" || signalingStatus === "error"
+  const signalingBusy = signalingStatus === "connecting" || signalingStatus === "idle"
+
   const handleVoiceClick = () => {
-    if (isConnecting || isRequestingMicPermission) return
+    if (isConnecting || isRequestingMicPermission || signalingBlocked) return
     void unlockVoiceAudio()
     if (!isJoined) {
+      if (signalingBusy) return
       void joinVoice()
       return
     }
     void toggleMic()
   }
+
+  const title = signalingBlocked
+    ? "Voice signaling offline (Supabase)"
+    : signalingBusy && !isJoined
+      ? "Connecting voice…"
+      : !isJoined
+        ? "Join voice chat"
+        : isMicOn
+          ? "Mute microphone"
+          : "Unmute microphone"
 
   return (
     <>
@@ -70,23 +85,25 @@ export function TableHudComms({ myPlayerId, players }: TableHudCommsProps) {
         <button
           type="button"
           onClick={handleVoiceClick}
-          disabled={isConnecting || isRequestingMicPermission}
+          disabled={
+            isConnecting ||
+            isRequestingMicPermission ||
+            signalingBlocked ||
+            (signalingBusy && !isJoined)
+          }
           className={cn(
             "table-hud-icon-btn relative",
             isJoined && isMicOn && "table-hud-icon-btn--active",
-            isJoined && !isMicOn && "table-hud-icon-btn--live"
+            isJoined && !isMicOn && "table-hud-icon-btn--live",
+            signalingBlocked && "opacity-50"
           )}
-          aria-label={
-            !isJoined
-              ? "Join voice chat"
-              : isMicOn
-                ? "Mute microphone"
-                : "Unmute microphone"
-          }
-          title={!isJoined ? "Join voice" : isMicOn ? "Mic on" : "Mic off"}
+          aria-label={title}
+          title={title}
         >
-          {isConnecting || isRequestingMicPermission ? (
+          {isConnecting || isRequestingMicPermission || (signalingBusy && !isJoined) ? (
             <Loader2 className="h-4 w-4 animate-spin" />
+          ) : signalingBlocked ? (
+            <WifiOff className="h-4 w-4" />
           ) : !isJoined ? (
             <Headphones className="h-4 w-4" />
           ) : isMicOn ? (
