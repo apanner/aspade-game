@@ -29,16 +29,11 @@ export function NextLeaderPointer({ leaderName, leaderSeat, mySeat }: NextLeader
       exit={{ opacity: 0 }}
       className={cn("pointer-events-none absolute z-20", pointerClass)}
     >
-      <div
-        className={cn(
-          "rounded-lg border border-turn-active/60 bg-black/85 px-3 py-1.5 text-center shadow-[0_0_20px_rgba(34,197,94,0.35)]",
-          !prefersReducedMotion && "animate-pulse"
-        )}
-      >
-        <p className="text-[10px] font-bold uppercase tracking-wider text-turn-active">
+      <div className="table-notice-pill table-notice-pill--info rounded-lg px-3 py-1.5 text-center">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-white">
           {leaderName} leads next
         </p>
-        <p className="text-[9px] text-white/50 mt-0.5">New trick starting</p>
+        <p className="text-[9px] text-white/65 mt-0.5">New trick starting</p>
       </div>
     </motion.div>
   )

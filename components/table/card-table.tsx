@@ -12,7 +12,7 @@ import { BiddingCenter } from "./bidding-center"
 import { BiddingOverlay } from "./bidding-overlay"
 import { PlayerHand } from "./player-hand"
 import { TurnTimer } from "./turn-timer"
-import { YourTurnBanner } from "@/components/shell/your-turn-banner"
+import { YourTurnBanner, SeatTurnNotice, TableNotice } from "@/components/shell/your-turn-banner"
 import type { ConnectionStatus } from "./connection-badge"
 import { getSeatPosition, parseCardCode, SUIT_SYMBOL } from "./card-utils"
 import { useToast } from "@/hooks/use-toast"
@@ -243,6 +243,8 @@ export function CardTable({
         ? "You"
         : turnPlayer.name.split(" ")[0]
       : null
+  const showRoundEndOverlay =
+    !!roundEndSummary && !isTrickTransition && !showTrickCelebration && !trickBreather
   const isComputerThinking = !!turnPlayer?.isComputer && !isMyTurn && !isBidding
   const isComputerBidding = isBidding && !!turnPlayer?.isComputer && !isMyTurn
 
@@ -523,9 +525,20 @@ export function CardTable({
     const showBidding = isBidding && isTurn && p.bid === undefined
     const label =
       p.id === myPlayerId ? "You" : !isIndividualMode && p.isPartner ? "Partner" : fallbackLabel
+    const isSelf = p.id === myPlayerId
+    const showUserTurnNotice =
+      isSelf && ((canPlayNow && !isBidding) || (isMyTurnToBid && isBidding))
     const isRecentWinner = (showTrickCelebration && trickCelebration?.winnerId === p.id) || nextLeaderId === p.id
     return (
-      <div className="flex w-[84px] flex-col gap-0.5">
+      <div className="flex w-[84px] flex-col items-center gap-0.5">
+        {showUserTurnNotice && (
+          <SeatTurnNotice
+            message={
+              isMyTurnToBid && isBidding ? "Your turn to bid" : "Your turn — play"
+            }
+            variant={isBidding ? "bid" : "play"}
+          />
+        )}
         {(isTurn && !isBidding) || (isMyTurnToBid && p.id === myPlayerId) ? (
           <TurnTimer turnExpiresAt={turnExpiresAt} active={isTurn || (isMyTurnToBid && p.id === myPlayerId)} />
         ) : null}
@@ -618,7 +631,7 @@ export function CardTable({
                   />
                 )
               })()}
-              {roundEndSummary && (
+              {showRoundEndOverlay && roundEndSummary && (
                 <RoundCompleteBanner
                   round={roundEndSummary.round}
                   scores={roundEndSummary.scores}
@@ -630,31 +643,19 @@ export function CardTable({
             </div>
           )}
           <AnimatePresence>
-            {isMyTurnToBid && (
-              <YourTurnBanner key="bid-turn" message="Your turn to bid" className="-top-14" />
-            )}
-            {canPlayNow && !isBidding && <YourTurnBanner key="your-turn" />}
             {isComputerBidding && (
-              <motion.div
+              <TableNotice
                 key="bot-bidding"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="pointer-events-none absolute inset-x-0 -top-12 z-40 mx-auto w-fit rounded-full border border-purple-400/30 bg-purple-500/20 px-3 py-1.5 text-xs font-medium text-purple-200"
-              >
-                {turnPlayer?.name} is bidding…
-              </motion.div>
+                message={`${turnPlayer?.name} is bidding…`}
+                className="absolute inset-x-0 -top-12 z-40 mx-auto"
+              />
             )}
             {isComputerThinking && (
-              <motion.div
+              <TableNotice
                 key="bot-thinking"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="pointer-events-none absolute inset-x-0 -top-12 z-40 mx-auto w-fit rounded-full border border-purple-400/30 bg-purple-500/20 px-3 py-1.5 text-xs font-medium text-purple-200"
-              >
-                {turnPlayer?.name} is playing…
-              </motion.div>
+                message={`${turnPlayer?.name} is playing…`}
+                className="absolute inset-x-0 -top-12 z-40 mx-auto"
+              />
             )}
             {showRoundBanner && (
               <motion.div
@@ -665,12 +666,11 @@ export function CardTable({
                 transition={prefersReducedMotion ? reducedMotionProps.transition : { type: "spring", stiffness: 300, damping: 24 }}
                 className={cn(
                   "pointer-events-none absolute inset-x-0 -top-16 z-50 mx-auto w-fit",
-                  "rounded-xl border border-turn-active/40 bg-black/85 px-4 py-2 backdrop-blur-md",
-                  "text-center shadow-[0_0_24px_rgba(34,197,94,0.35)]"
+                  "table-notice-pill table-notice-pill--round"
                 )}
                 role="status"
               >
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-turn-active">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-win-gold">
                   Round {round}
                 </p>
                 <p className="text-sm font-bold text-white">
@@ -694,8 +694,7 @@ export function CardTable({
                 }
                 className={cn(
                   "pointer-events-none absolute inset-x-0 -top-14 z-50 mx-auto w-fit",
-                  "rounded-xl border border-purple-400/40 bg-purple-600/90 px-4 py-2",
-                  "text-sm font-bold uppercase tracking-wider text-white shadow-[0_0_24px_rgba(168,85,247,0.5)]"
+                  "table-notice-pill table-notice-pill--spades px-5 py-2.5"
                 )}
                 role="status"
                 aria-live="assertive"
@@ -710,7 +709,7 @@ export function CardTable({
         <div className="relative flex flex-col">
           <div className="px-2 pt-1.5">
             {!isBidding && canPlayNow && legalCards && legalCards.length > 0 && (
-              <p className="mb-1 text-center text-[9px] uppercase tracking-widest text-turn-active animate-pulse">
+              <p className="mb-1 text-center text-[9px] uppercase tracking-widest text-win-gold font-semibold">
                 {displayTrickPlays.length === 0 && lastCompletedTrick?.winnerId === myPlayerId
                   ? "You won — play your card"
                   : leadSuit
@@ -719,14 +718,14 @@ export function CardTable({
               </p>
             )}
             {!isBidding && hasPlayedThisTrick && (
-              <p className="mb-1 text-center text-[9px] uppercase tracking-widest text-white/40">
+              <p className="mb-1 text-center text-[9px] uppercase tracking-widest text-white/70">
                 {isMyTurn && !trickPlays.some((p) => p.playerId === myPlayerId)
                   ? "Syncing your play…"
                   : "Waiting for others…"}
               </p>
             )}
             {!isBidding && !isMyTurn && !hasPlayedThisTrick && turnPlayer && displayTrickPlays.length > 0 && (
-              <p className="mb-1 text-center text-[9px] uppercase tracking-widest text-white/40">
+              <p className="mb-1 text-center text-[9px] uppercase tracking-widest text-white/70">
                 {turnPlayer.name}&apos;s turn
               </p>
             )}

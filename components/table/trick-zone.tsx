@@ -56,14 +56,14 @@ export const TrickZone = forwardRef<HTMLDivElement, TrickZoneProps>(function Tri
       />
       <div
         className={cn(
-          "absolute inset-[4px] flex flex-col items-center justify-center rounded-full bg-black/35 backdrop-blur-sm shadow-[inset_0_0_40px_rgba(0,0,0,0.5)] transition-all",
-          isDropTarget && "bg-turn-active/10"
+          "absolute inset-[4px] flex flex-col items-center justify-center rounded-full bg-[#0c1219]/75 backdrop-blur-sm shadow-[inset_0_0_40px_rgba(0,0,0,0.55)] transition-all",
+          isDropTarget && "bg-[#0c1219]/85"
         )}
       >
         <span
           className={cn(
-            "text-[9px] font-bold uppercase tracking-[0.25em]",
-            isDropTarget ? "text-turn-active animate-pulse" : "text-white/30"
+            "table-trick-label text-[9px] font-bold uppercase tracking-[0.25em]",
+            isDropTarget ? "table-trick-label--active animate-pulse" : ""
           )}
         >
           {isDropTarget

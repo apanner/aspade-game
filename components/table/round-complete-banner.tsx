@@ -36,10 +36,10 @@ export function RoundCompleteBanner({
       <motion.div
         initial={prefersReducedMotion ? false : { scale: 0.92, y: 12 }}
         animate={{ scale: 1, y: 0 }}
-        className="mx-4 w-full max-w-[280px] rounded-2xl border border-white/15 bg-[#0c1219] p-4 shadow-2xl"
+        className="mx-4 w-full max-w-[280px] rounded-2xl border border-white/15 bg-[var(--surface-ink)] p-4 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <p className="text-center text-[10px] font-semibold uppercase tracking-widest text-turn-active">
+        <p className="text-center text-[10px] font-semibold uppercase tracking-widest text-win-gold">
           Round {round} complete
         </p>
         <ul className="mt-3 space-y-2">
@@ -48,17 +48,17 @@ export function RoundCompleteBanner({
               key={entry.playerId}
               className={cn(
                 "flex items-center justify-between rounded-lg px-3 py-2",
-                entry.playerId === leaderId ? "bg-turn-active/15 border border-turn-active/30" : "bg-white/5"
+                entry.playerId === leaderId ? "bg-win-gold/12 border border-win-gold/35" : "bg-white/8"
               )}
             >
               <div>
                 <p className="text-xs font-semibold text-white">
                   {index + 1}. {entry.name}
                   {entry.playerId === leaderId && (
-                    <span className="ml-1 text-[9px] text-turn-active">LEAD</span>
+                    <span className="ml-1 text-[9px] text-win-gold">LEAD</span>
                   )}
                 </p>
-                <p className="text-[10px] text-white/45">
+                <p className="text-[10px] text-white/65">
                   Bid {entry.bid} · Won {entry.tricks}
                 </p>
               </div>
@@ -74,7 +74,7 @@ export function RoundCompleteBanner({
             </li>
           ))}
         </ul>
-        <p className="mt-3 text-center text-[10px] text-white/40">
+        <p className="mt-3 text-center text-[10px] text-white/60">
           {isFinalRound ? "Final scores loading…" : "Next round dealing…"}
         </p>
       </motion.div>

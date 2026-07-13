@@ -23,6 +23,7 @@ import { useGameSync } from "@/hooks/useGameSync"
 import { useToast } from "@/hooks/use-toast"
 import { GameVoiceProvider } from "@/components/voice/game-voice-provider"
 import { GameChatProvider } from "@/components/chat/game-chat-provider"
+import { ROUND_END_VIEW_MS } from "@/lib/trick-pacing"
 
 type LiveGameProps = {
   gameId: string
@@ -243,11 +244,11 @@ export function LiveGame({ gameId }: LiveGameProps) {
     if (!game?.liveState || !currentPlayerId) return
     if (game.liveState.phase !== "round_end") return
     if (game.status === "completed") return
+    if (trickPacing) return
 
     const isFinalRound = game.currentRound >= game.totalRounds
     const isHostPlayer = currentPlayerId === game.hostId
 
-    // Mid-game: only auto-advance vs computer. Final round: host closes out the match.
     if (!isFinalRound && !hasComputers) return
     if (isFinalRound && !isHostPlayer) return
 
@@ -255,7 +256,7 @@ export function LiveGame({ gameId }: LiveGameProps) {
       clearTimeout(roundAdvanceTimerRef.current)
     }
 
-    const delay = isFinalRound ? 3800 : 3200
+    const delay = isFinalRound ? ROUND_END_VIEW_MS + 1500 : ROUND_END_VIEW_MS
     roundAdvanceTimerRef.current = setTimeout(() => {
       handleGameAction("nextRound").catch(() => {})
     }, delay)
@@ -274,6 +275,7 @@ export function LiveGame({ gameId }: LiveGameProps) {
     currentPlayerId,
     hasComputers,
     handleGameAction,
+    trickPacing,
   ])
 
   if (loading) {

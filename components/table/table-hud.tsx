@@ -52,12 +52,12 @@ export function TableHUD({
     <div className="shrink-0">
       <div className="flex items-center justify-between gap-2 px-2 py-2.5">
       <ConnectionBadge status={connectionStatus} />
-      <div className="rounded-2xl border border-white/10 bg-black/45 px-3.5 py-1.5 text-xs font-semibold backdrop-blur-md shadow-[0_4px_24px_rgba(0,0,0,0.35)]">
-        <span className="text-[9px] text-white/50 mr-1.5">
+      <div className="rounded-2xl border border-white/12 bg-[var(--surface-ink)]/90 px-3.5 py-1.5 text-xs font-semibold backdrop-blur-md shadow-[0_4px_24px_rgba(0,0,0,0.35)]">
+        <span className="text-[9px] text-white/70 mr-1.5">
           R{round}/{totalRounds}
           {phase === "bidding" && <span className="text-team-us ml-1">· BID</span>}
           {phase === "playing" && (
-            <span className="text-white/40 ml-1">
+            <span className="text-white/60 ml-1">
               · T{tricksInRound}/{cardsPerRound}
             </span>
           )}
@@ -70,7 +70,7 @@ export function TableHUD({
             {myRank != null && totalPlayers != null && (
               <>
                 <span className="mx-2 text-white/25">|</span>
-                <span className="text-white/55">#{myRank}/{totalPlayers}</span>
+                <span className="text-white/75">#{myRank}/{totalPlayers}</span>
               </>
             )}
           </>

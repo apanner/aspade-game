@@ -81,18 +81,17 @@ export function TrickCelebration({ data, mySeat, myPlayerId, onDone }: TrickCele
         exit={{ opacity: 0 }}
         className={cn(
           "absolute inset-x-0 -top-14 mx-auto w-fit rounded-2xl px-5 py-3",
-          "border-2 border-turn-active/60 bg-black/92 backdrop-blur-md",
-          "shadow-[0_0_32px_rgba(34,197,94,0.45)]"
+          "table-notice-pill table-notice-pill--round border-2"
         )}
       >
-        <p className="text-center text-[10px] font-bold uppercase tracking-[0.2em] text-turn-active/80">
+        <p className="text-center text-[10px] font-bold uppercase tracking-[0.2em] text-win-gold">
           Trick {data.trickIndex + 1} complete
         </p>
         <p className="text-center text-base font-bold text-white mt-0.5">
-          <span className="text-turn-active">{winnerLabel}</span>
+          <span className="text-win-gold">{winnerLabel}</span>
           {isYou ? " win!" : " wins"}
         </p>
-        <p className="text-center text-[10px] text-white/50 mt-0.5">Books +1</p>
+        <p className="text-center text-[10px] text-white/70 mt-0.5">Books +1</p>
       </motion.div>
 
       {data.plays.map((play) => {

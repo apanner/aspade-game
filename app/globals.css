@@ -3,14 +3,20 @@
 @tailwind utilities;
 
 :root {
-  --felt: #0d4f3c;
-  --felt-mid: #0a3d2e;
-  --bg-deep: #0a0f1a;
-  --glass: rgba(15, 23, 42, 0.72);
-  --team-us: #00e5ff;
-  --team-them: #ff6b35;
-  --turn-glow: #34d399;
-  --win-gold: #facc15;
+  --felt: #0b5e47;
+  --felt-mid: #084a38;
+  --bg-deep: #070b12;
+  --surface-ink: #0c1219;
+  --surface-elevated: #141c28;
+  --glass: rgba(12, 18, 28, 0.88);
+  --text-primary: #f4f7fb;
+  --text-muted: rgba(244, 247, 251, 0.72);
+  --text-subtle: rgba(244, 247, 251, 0.48);
+  --team-us: #5ed9ff;
+  --team-them: #ff8a4c;
+  --turn-glow: #ffce21;
+  --win-gold: #ffce21;
+  --accent-play: #0070d1;
   --radius: 0.75rem;
   --background: 222 47% 6%;
   --foreground: 210 40% 98%;
@@ -21,7 +27,7 @@
   --secondary: 217 33% 17%;
   --secondary-foreground: 210 40% 98%;
   --muted: 217 33% 14%;
-  --muted-foreground: 215 20% 65%;
+  --muted-foreground: 215 20% 72%;
   --accent: 217 33% 17%;
   --accent-foreground: 210 40% 98%;
   --destructive: 0 62% 50%;
@@ -71,9 +77,69 @@ body {
 
 .felt-table {
   background:
-    radial-gradient(ellipse 120% 80% at 50% 20%, rgba(0, 229, 255, 0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 120% 80% at 50% 20%, rgba(94, 217, 255, 0.05) 0%, transparent 55%),
     radial-gradient(ellipse at center, #0f6b52 0%, #0a4a38 48%, #062a20 100%);
   box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.45);
+}
+
+/* Readable table notices — ink surface + white text (PlayStation-style contrast) */
+.table-notice-pill {
+  @apply pointer-events-none relative flex items-center justify-center gap-2 rounded-full px-3.5 py-1.5 backdrop-blur-md;
+  background: rgba(12, 18, 28, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.table-notice-pill--turn {
+  border-color: rgba(255, 206, 33, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(255, 206, 33, 0.15),
+    0 0 24px rgba(255, 206, 33, 0.22),
+    0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.table-notice-pill--info {
+  border-color: rgba(94, 217, 255, 0.35);
+}
+
+.table-notice-pill--round {
+  @apply flex-col rounded-xl px-4 py-2 text-center;
+  border-color: rgba(255, 206, 33, 0.4);
+  box-shadow: 0 0 28px rgba(255, 206, 33, 0.18);
+}
+
+.table-notice-pill--spades {
+  border-color: rgba(168, 85, 247, 0.5);
+  background: rgba(20, 12, 36, 0.94);
+  box-shadow: 0 0 28px rgba(168, 85, 247, 0.25);
+}
+
+.table-notice-pulse {
+  @apply absolute -inset-1 rounded-full;
+  border: 2px solid rgba(255, 206, 33, 0.45);
+  animation: notice-pulse 1.6s ease-out infinite;
+}
+
+@keyframes notice-pulse {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.18);
+    opacity: 0;
+  }
+}
+
+.table-trick-label {
+  color: var(--text-muted);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.table-trick-label--active {
+  color: var(--win-gold);
 }
 
 .seat-card {

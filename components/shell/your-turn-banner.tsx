@@ -4,30 +4,64 @@ import { motion, useReducedMotion } from "framer-motion"
 import { Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+type SeatTurnNoticeProps = {
+  message?: string
+  variant?: "play" | "bid"
+  className?: string
+}
+
+export function SeatTurnNotice({
+  message = "Your turn",
+  variant = "play",
+  className,
+}: SeatTurnNoticeProps) {
+  const prefersReducedMotion = useReducedMotion()
+
+  return (
+    <motion.div
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 6, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 4 }}
+      className={cn("table-notice-pill table-notice-pill--turn mb-1.5", className)}
+      role="status"
+      aria-live="assertive"
+    >
+      {!prefersReducedMotion && <span className="table-notice-pulse" aria-hidden />}
+      <Sparkles className="h-3.5 w-3.5 shrink-0 text-win-gold" />
+      <span className="text-[11px] font-bold uppercase tracking-wide text-white">
+        {message}
+      </span>
+    </motion.div>
+  )
+}
+
 type YourTurnBannerProps = {
   message?: string
   className?: string
 }
 
+/** Center-table notice (bots, round events). User turn uses SeatTurnNotice at south seat. */
 export function YourTurnBanner({ message = "Your turn — play a card", className }: YourTurnBannerProps) {
+  return <SeatTurnNotice message={message} className={className} />
+}
+
+type TableNoticeProps = {
+  message: string
+  className?: string
+}
+
+export function TableNotice({ message, className }: TableNoticeProps) {
   const prefersReducedMotion = useReducedMotion()
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 8 }}
-      className={cn(
-        "pointer-events-none absolute inset-x-0 -top-12 z-40 mx-auto flex w-fit items-center gap-2",
-        "rounded-full border border-turn-active/50 bg-turn-active/20 px-4 py-2",
-        "text-sm font-bold uppercase tracking-wide text-turn-active glow-turn backdrop-blur-md",
-        className
-      )}
+      exit={{ opacity: 0 }}
+      className={cn("table-notice-pill table-notice-pill--info", className)}
       role="status"
-      aria-live="assertive"
     >
-      <Sparkles className="h-4 w-4 shrink-0" />
-      {message}
+      <span className="text-xs font-semibold text-white/90">{message}</span>
     </motion.div>
   )
 }
