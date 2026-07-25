@@ -15,7 +15,7 @@ import { ManualGameGate } from "@/components/shell/manual-game-gate"
 import { BiddingPanel } from "@/components/shell/bidding-panel"
 import { ManualTricksPanel } from "@/components/shell/manual-tricks-panel"
 import { EndGameControl } from "@/components/shell/end-game-control"
-import { supportsLiveCardTable, isScoringTable } from "@/lib/table-config"
+import { usesLiveCardEngine, isScoringTable } from "@/lib/table-config"
 import { buildCardTableProps } from "@/lib/card-table-props"
 import { gameAPI, sessionStorage, GamePoller, type Game } from "@/lib/api"
 import { sanitizeLiveGameForPlayer } from "@/lib/live-game-client"
@@ -23,7 +23,7 @@ import { useGameSync } from "@/hooks/useGameSync"
 import { useToast } from "@/hooks/use-toast"
 import { GameVoiceProvider } from "@/components/voice/game-voice-provider"
 import { GameChatProvider } from "@/components/chat/game-chat-provider"
-import { ROUND_END_VIEW_MS } from "@/lib/trick-pacing"
+import { FINAL_ROUND_EXTRA_MS, ROUND_END_VIEW_MS } from "@/lib/trick-pacing"
 
 type LiveGameProps = {
   gameId: string
@@ -164,7 +164,8 @@ export function LiveGame({ gameId }: LiveGameProps) {
     const applyActionGame = (raw: Game) => {
       announceTrickWin(raw, currentPlayerId)
       setGame(sanitizeLiveGameForPlayer(raw, currentPlayerId))
-      pollerRef.current?.initialize(gameId, raw, false)
+      // Keep smart polling on so other seats stay in sync without relying only on Realtime.
+      pollerRef.current?.initialize(gameId, raw, true)
     }
 
     setConnectionStatus("connecting")
@@ -201,6 +202,15 @@ export function LiveGame({ gameId }: LiveGameProps) {
           if (res.game) applyActionGame(res.game)
           break
         }
+        case "extendGame": {
+          const res = await gameAPI.extendGame(
+            gameId,
+            currentPlayerId,
+            Number(data?.additionalRounds ?? 3)
+          )
+          if (res.game) applyActionGame(res.game)
+          break
+        }
         default:
           throw new Error(`Unknown action: ${action}`)
       }
@@ -217,24 +227,26 @@ export function LiveGame({ gameId }: LiveGameProps) {
     }
   }, [currentPlayerId, gameId, toast, announceTrickWin])
 
-  const hasComputers = game ? Object.values(game.players).some((p) => p.isComputer) : false
-
+  // While bidding/playing, poll often so real players see bids and cards without lag.
+  // Faster when a computer seat is thinking so one-card bot pacing stays lively.
   useEffect(() => {
-    if (!game?.liveState || !hasComputers) return
+    if (!game?.liveState) return
     if (trickPacing) return
     const phase = game.liveState.phase
+    if (phase !== "playing" && phase !== "bidding" && phase !== "round_end") return
+
     const turnId = game.liveState.currentTurn
-    const isBotTurn = turnId && game.players[turnId]?.isComputer
-    if (phase !== 'playing' && phase !== 'bidding') return
-    if (!isBotTurn && phase === 'playing') return
+    const isBotTurn = !!(turnId && game.players[turnId]?.isComputer)
+    const intervalMs = isBotTurn && phase === "playing" ? 900 : 1800
 
     const interval = window.setInterval(() => {
       pollerRef.current?.forceRefresh()
-    }, 2000)
+    }, intervalMs)
 
     return () => window.clearInterval(interval)
-  }, [game?.liveState?.phase, game?.liveState?.currentTurn, game?.players, hasComputers, trickPacing])
+  }, [game?.liveState?.phase, game?.liveState?.currentTurn, game?.players, trickPacing])
 
+  // Host auto-advances rounds (human tables and computer) so the deal keeps moving.
   useEffect(() => {
     if (!game?.liveState || !currentPlayerId) return
     if (game.liveState.phase !== "round_end") return
@@ -243,15 +255,14 @@ export function LiveGame({ gameId }: LiveGameProps) {
 
     const isFinalRound = game.currentRound >= game.totalRounds
     const isHostPlayer = currentPlayerId === game.hostId
-
-    if (!isFinalRound && !hasComputers) return
-    if (isFinalRound && !isHostPlayer) return
+    if (!isHostPlayer) return
 
     if (roundAdvanceTimerRef.current) {
       clearTimeout(roundAdvanceTimerRef.current)
     }
 
-    const delay = isFinalRound ? ROUND_END_VIEW_MS + 1500 : ROUND_END_VIEW_MS
+    // Hold the scoreboard long enough to read winner / round points before next deal.
+    const delay = isFinalRound ? ROUND_END_VIEW_MS + FINAL_ROUND_EXTRA_MS : ROUND_END_VIEW_MS
     roundAdvanceTimerRef.current = setTimeout(() => {
       handleGameAction("nextRound").catch(() => {})
     }, delay)
@@ -268,7 +279,6 @@ export function LiveGame({ gameId }: LiveGameProps) {
     game?.status,
     game?.hostId,
     currentPlayerId,
-    hasComputers,
     handleGameAction,
     trickPacing,
   ])
@@ -307,9 +317,15 @@ export function LiveGame({ gameId }: LiveGameProps) {
   const playerCount = Object.keys(game.players).length
   const maxPlayers = game.maxPlayers ?? 4
   const isHost = currentPlayerId === game.hostId
-  const isFourSeatTable = supportsLiveCardTable(maxPlayers)
+  // Live card table only when playMode=live AND liveState exists.
+  // Treating every 2–12 seat table as "live" blocked BiddingPanel and showed "Phase: bidding".
+  const isLiveTable = usesLiveCardEngine(game)
   const scoringTable = isScoringTable(game)
-  const voiceEnabled = !!currentPlayerId && status !== "cancelled" && status !== "completed"
+  const voiceEnabled =
+    !!currentPlayerId &&
+    status !== "cancelled" &&
+    status !== "completed" &&
+    humanPlayerIds.length > 1
 
   let phaseContent: ReactNode
 
@@ -318,13 +334,13 @@ export function LiveGame({ gameId }: LiveGameProps) {
       <div className="felt-page flex min-h-[100dvh] flex-col items-center justify-center p-6 gap-4">
         <AlertCircle className="w-10 h-10 text-muted-foreground" />
         <p className="text-center text-muted-foreground">This game was closed. Start a new table from the dashboard.</p>
-        <Button asChild className="btn-pill-primary">
+        <Button asChild size="lg">
           <Link href="/dashboard">Back to dashboard</Link>
         </Button>
       </div>
     )
   } else if (
-    isFourSeatTable &&
+    game.playMode === "live" &&
     playerCount < maxPlayers &&
     status !== "lobby" &&
     status !== "completed"
@@ -344,10 +360,17 @@ export function LiveGame({ gameId }: LiveGameProps) {
         game={game}
         myPlayerId={currentPlayerId}
         isHost={isHost}
+        onExtendRounds={
+          isHost
+            ? async (additionalRounds) => {
+                await handleGameAction("extendGame", { additionalRounds })
+              }
+            : undefined
+        }
       />
     )
   } else if (
-    isFourSeatTable &&
+    isLiveTable &&
     currentPlayerId &&
     (status === "bidding" || status === "playing" || status === "scoring")
   ) {
@@ -357,6 +380,7 @@ export function LiveGame({ gameId }: LiveGameProps) {
         <CardTable
           {...tableProps}
           gameId={gameId}
+          gameCode={game.code || gameId}
           isHost={isHost}
           connectionStatus={connectionStatus}
           onPlayCard={async (card) => {
@@ -368,12 +392,20 @@ export function LiveGame({ gameId }: LiveGameProps) {
           onRoundCompleteDismiss={() => handleGameAction("nextRound")}
           onRequestSync={() => pollerRef.current?.forceRefresh()}
           onPacingChange={setTrickPacing}
+          onExtendRounds={
+            isHost
+              ? async (additionalRounds) => {
+                  await handleGameAction("extendGame", { additionalRounds })
+                }
+              : undefined
+          }
         />
       </CardTableErrorBoundary>
     ) : null
   }
 
-  if (!phaseContent && scoringTable && status === "bidding" && currentPlayerId) {
+  // Manual tables, or live tables that failed to build card props.
+  if (!phaseContent && status === "bidding" && currentPlayerId) {
     phaseContent = (
       <BiddingPanel
         game={game}
@@ -409,34 +441,39 @@ export function LiveGame({ gameId }: LiveGameProps) {
         myPlayerId={currentPlayerId}
         isHost={isHost}
         onNextRound={() => handleGameAction("nextRound")}
+        onExtendRounds={
+          isHost
+            ? async (additionalRounds) => {
+                await handleGameAction("extendGame", { additionalRounds })
+              }
+            : undefined
+        }
       />
     )
   }
 
-  if (!phaseContent && isFourSeatTable && currentPlayerId) {
+  if (!phaseContent && game.playMode === "live" && currentPlayerId) {
     phaseContent = (
       <div className="felt-page flex min-h-[100dvh] flex-col items-center justify-center p-6 gap-4">
         <AlertCircle className="w-10 h-10 text-destructive" />
         <div className="text-center space-y-2 max-w-sm">
           <p className="font-semibold text-white">Could not load the card table</p>
           <p className="text-sm text-muted-foreground">
-            The game state may be out of sync. Try refreshing, or start a new game with all 4 players in the lobby.
+            The game state may be out of sync. Refresh, or create a new table.
           </p>
         </div>
         <div className="flex gap-2 flex-wrap justify-center">
-          {currentPlayerId && (
-            <EndGameControl
-              gameId={gameId}
-              playerId={currentPlayerId}
-              isHost={isHost}
-              variant="destructive"
-            />
-          )}
+          <EndGameControl
+            gameId={gameId}
+            playerId={currentPlayerId}
+            isHost={isHost}
+            variant="destructive"
+          />
           <Button variant="outline" className="border-white/10" onClick={() => router.refresh()}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
-          <Button asChild className="btn-pill-primary">
+          <Button asChild size="lg">
             <Link href="/create-game">New game</Link>
           </Button>
         </div>
@@ -451,14 +488,34 @@ export function LiveGame({ gameId }: LiveGameProps) {
         myPlayerId={currentPlayerId}
         isHost={isHost}
         onNextRound={() => handleGameAction("nextRound")}
+        onExtendRounds={
+          isHost
+            ? async (additionalRounds) => {
+                await handleGameAction("extendGame", { additionalRounds })
+              }
+            : undefined
+        }
       />
     )
   }
 
   if (!phaseContent) {
     phaseContent = (
-      <div className="felt-page flex min-h-[100dvh] items-center justify-center">
-        <p className="text-muted-foreground">Phase: {status}</p>
+      <div className="felt-page flex min-h-[100dvh] flex-col items-center justify-center gap-4 p-6">
+        <p className="text-muted-foreground text-center">
+          {currentPlayerId
+            ? "Waiting for game state…"
+            : "Sign in from the dashboard to rejoin this table."}
+        </p>
+        <div className="flex gap-2 flex-wrap justify-center">
+          <Button variant="outline" className="border-white/10" onClick={() => router.refresh()}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
+          <Button asChild size="lg">
+            <Link href="/dashboard">Dashboard</Link>
+          </Button>
+        </div>
       </div>
     )
   }
